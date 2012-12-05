@@ -4,6 +4,11 @@ Misc settings that can be overridden
 from django.conf import settings
 
 
+# Resource Settings
+RESOURCE_TYPES = ['link', 'photo', 'rich', 'video']
+RESOURCE_CHOICES = [(x, x.capitalize()) for x in RESOURCE_TYPES]
+
+
 # HTTP/Network settings
 HTTP_TIMEOUT = getattr(settings, 'MONOCLE_HTTP_TIMEOUT', 3)  # 3 sec default
 
