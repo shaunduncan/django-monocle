@@ -16,4 +16,4 @@ class ThirdPartyProvider(models.Model):
                                  help_text="Expose this resource to external requests")
 
     class Meta:
-        ordering = ('endpoint', 'resource_type')
+        ordering = ('api_endpoint', 'resource_type')
