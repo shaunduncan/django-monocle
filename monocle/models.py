@@ -1,9 +1,10 @@
 from django.db import models
 
+from monocle.providers import Provider
 from monocle.settings import RESOURCE_CHOICES
 
 
-class ThirdPartyProvider(models.Model):
+class ThirdPartyProvider(models.Model, Provider):
     """
     Database-backed third-party provider configuration
     """

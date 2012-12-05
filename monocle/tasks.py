@@ -10,6 +10,7 @@ from monocle.settings import (HTTP_TIMEOUT,
                               TASK_QUEUE,
                               TASK_EXTERNAL_MAX_RETRIES,
                               TASK_EXTERNAL_RETRY_DELAY)
+from monocle.util import extract_content_url
 
 
 @task(queue=TASK_QUEUE,
@@ -39,13 +40,16 @@ def request_external_oembed(url):
         if request.getcode() != 200:
             logger.error('URL %s resulted in unexpected HTTP status' % (url, request.getcode()))
         else:
+            original_url = extract_content_url(url)
+
             try:
-                # TODO: creating a resource should validate and raise
-                resource = Resource(json.loads(request.read()))
+                # TODO: Any validation that should happen here?
+                # Do we store invalid data? If invalid do we clear the cache?
+                resource = Resource(original_url, json.loads(request.read()))
             except ValueError:
                 logger.error('OEmbed response from %s contains invalid JSON' % url)
             else:
                 # Update the cache with this data
-                cache.set(make_key(url), resource.ttl)
+                cache.set(make_key(url), resource, timeout=resource.ttl)
             finally:
                 request.close()
