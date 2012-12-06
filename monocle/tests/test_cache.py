@@ -16,11 +16,11 @@ class CacheTestCase(TestCase):
         # Subsequent call should not prime
         cached, primed = cache.get_or_prime('foo', primer='baz')
         self.assertFalse(primed)
-        self.assertEquals(cached, 'bar')
+        self.assertEqual(cached, 'bar')
 
     def test_get_or_prime_does_not_prime(self):
         cache.set('foo', 'bar')
 
         cached, primed = cache.get_or_prime('foo', primer='baz')
         self.assertFalse(primed)
-        self.assertEquals(cached, 'bar')
+        self.assertEqual(cached, 'bar')

@@ -2,6 +2,8 @@ from mock import Mock, patch
 from unittest2 import TestCase
 from urllib import urlencode
 
+from django.conf import settings
+
 from monocle.providers import Provider, InternalProvider
 from monocle.resources import Resource
 
@@ -62,7 +64,7 @@ class ProviderTestCase(TestCase):
         self.assertFalse(mock_task.called)
 
 
-class LocalProviderTestCase(TestCase):
+class InternalProviderTestCase(TestCase):
 
     def setUp(self):
         self.resource_url = 'http://example.com/resource'
@@ -89,3 +91,79 @@ class LocalProviderTestCase(TestCase):
         self.provider.foo = 'foo'
         result = self.provider._data_attribute('foo')
         self.assertEqual('foo', result)
+
+    def test_build_resource_undefined_type(self):
+        # Setup for some type not defined - nothing should break
+        self.provider.resource_type = 'flash'
+        self.provider.html = 'HTML'
+        self.provider.foo = 'foo'
+        self.provider.author_name = 'John Galt'
+
+        resource = self.provider._build_resource()
+
+        # Base things
+        self.assertEqual('1.0', resource['version'])
+        self.assertEqual('flash', resource['type'])
+
+        # Should skip
+        self.assertNotIn('html', resource)
+
+        # Not an OEmbed param
+        self.assertNotIn('foo', resource)
+
+        # Optional param
+        self.assertEqual(resource['author_name'], self.provider.author_name)
+
+    def test_build_resource_valid_type(self):
+        # Ensure that we do the right thing for types we know about
+        self.provider.resource_type = 'video'
+        self.provider.html = 'FooBar'
+        self.provider.width = 100
+        self.provider.height = 100
+        self.provider.author_name = 'John Galt'
+
+        resource = self.provider._build_resource()
+
+        # Base things
+        self.assertEqual('1.0', resource['version'])
+        self.assertEqual('video', resource['type'])
+
+        self.assertEqual('FooBar', resource['html'])
+        self.assertEqual(100, resource['width'])
+        self.assertEqual(100, resource['height'])
+
+        # Optional param
+        self.assertEqual('John Galt', resource['author_name'])
+
+    @patch('monocle.providers.cache')
+    def test_get_resource_cached_is_stale(self, mock_cache):
+        # Update django settings
+        setattr(settings, 'MONOCLE_CACHE_LOCAL_PROVIDERS', True)
+
+        resource = Resource(self.resource_url)
+        resource.created = resource.created.replace(year=1984)
+
+        mock_cache.get_or_prime = mock_cache
+        mock_cache.return_value = (resource, False)
+        self.provider._build_resource = Mock(return_value=resource)
+
+        self.assertTrue(resource.is_stale)
+        resource = self.provider.get_resource()
+        self.assertFalse(resource.is_stale)
+        self.assertTrue(self.provider._build_resource.called)
+
+    @patch('monocle.providers.cache')
+    def test_get_resource_cached_is_primed(self, mock_cache):
+        # Update django settings
+        setattr(settings, 'MONOCLE_CACHE_LOCAL_PROVIDERS', True)
+
+        resource = Resource(self.resource_url)
+
+        mock_cache.get_or_prime = mock_cache
+        mock_cache.return_value = (resource, True)
+        self.provider._build_resource = Mock(return_value=resource)
+
+        self.assertFalse(resource.is_stale)
+        resource = self.provider.get_resource()
+        self.assertFalse(resource.is_stale)
+        self.assertTrue(self.provider._build_resource.called)

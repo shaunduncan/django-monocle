@@ -88,7 +88,7 @@ class InternalProvider(Provider):
             def height(self):
                 return 100
         """
-        attr = getattr(self, name)
+        attr = getattr(self, name, None)
 
         if attr is None and required:
             raise NotImplementedError
@@ -111,7 +111,7 @@ class InternalProvider(Provider):
         }
 
         # Apply required attributes by resource type
-        for attr in settings.RESOURCE_REQUIRED_ATTRS[self.resource_type]:
+        for attr in settings.RESOURCE_REQUIRED_ATTRS.get(self.resource_type, []):
             data[attr] = self._data_attribute(attr, required=True)
 
         # Optional attributes

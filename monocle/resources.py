@@ -26,6 +26,9 @@ class Resource(object):
         else:
             self._data[key] = value
 
+    def __contains__(self, key):
+        return key in self._data
+
     @property
     def is_stale(self):
         """
