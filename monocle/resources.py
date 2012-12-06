@@ -9,25 +9,22 @@ class Resource(object):
     """
     Basically a collection of OEmbed response data.
     """
-    _data = {}
 
     def __init__(self, url, data=None):
         self.url = url
         self.created = datetime.utcnow()
+        self._data = data or {}
 
-        if data:
-            self._data = data
-
-    def __getattr__(self, attr):
-        if attr == 'cache_age':
+    def __getitem__(self, key):
+        if key == 'cache_age':
             return self.ttl
-        return self._data.get(attr)
+        return self._data.get(key)
 
-    def __setattr__(self, attr, value):
-        if attr == 'cache_age':
+    def __setitem__(self, key, value):
+        if key == 'cache_age':
             self.ttl = value
         else:
-            self._data[attr] = value
+            self._data[key] = value
 
     @property
     def is_stale(self):
