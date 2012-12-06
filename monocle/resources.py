@@ -32,13 +32,18 @@ class Resource(object):
     @property
     def is_stale(self):
         """
-        Returns True if this resource's age since it was created
+        Returns True if this resource's age since it was updated
         is greater than it's TTL
         """
         delta = datetime.utcnow() - self.created
         age = (delta.days * 60 * 60 * 24) + delta.seconds
 
         return age > self.ttl
+
+    def fresh(self):
+        """Returns a 'fresh' version of this resource (internal datetime is now)"""
+        self.created = datetime.utcnow()
+        return self
 
     @property
     def json(self):

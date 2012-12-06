@@ -27,6 +27,10 @@ class Provider(object):
         cached, primed = cache.get_or_prime(request_url, primer=Resource(self._params['url']))
 
         if primed or cached.is_stale:
+            # Prevent many tasks being issued
+            if cached.is_stale:
+                cache.set(request_url, cached.fresh())
+
             request_external_oembed.apply_async(request_url)
 
         return cached
@@ -97,14 +101,8 @@ class InternalProvider(Provider):
         # TODO: How should this work??
         pass
 
-    def get_resource(self):
+    def _build_resource(self):
         url = self._params['url']
-        cache_key = 'INTERNAL:%s' % url
-
-        if settings.CACHE_LOCAL_PROVIDERS:
-            cached, primed = cache.get_or_prime(cache_key, primer=Resource(url))
-            if not primed and not cached.is_stale:
-                return cached
 
         # These are always required
         data = {
@@ -122,9 +120,24 @@ class InternalProvider(Provider):
 
         # TODO : CONSTRAIN TO MAXWIDTH/MAXHEIGHT
 
-        resource = Resource(url, data)
+        return Resource(url, data)
+
+    def get_resource(self):
+        url = self._params['url']
 
         if settings.CACHE_LOCAL_PROVIDERS:
-            cache.set(cache_key, resource)
+            cache_key = 'INTERNAL:%s' % url
+            cached, primed = cache.get_or_prime(cache_key, primer=Resource(url))
 
-        return resource
+            if primed or cached.is_stale:
+                # This is just a safeguard in case the rebuild takes a little time
+                if cached.is_stale:
+                    cache.set(cache_key, cached.fresh())
+
+                cached = self._build_resource()
+                cache.set(cache_key, cached)
+
+            return cached
+
+        # No caching, build directly
+        return self._build_resource()
