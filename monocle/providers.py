@@ -7,6 +7,7 @@ from django.template.loader import get_template
 from monocle.cache import get_or_prime, make_key
 from monocle.resources import Resource
 from monocle.settings import (CACHE_LOCAL_PROVIDERS,
+                              EXPOSE_LOCAL_PROVIDERS,
                               RESOURCE_REQUIRED_ATTRS,
                               RESOURCE_OPTIONAL_ATTRS)
 from monocle.tasks import request_external_oembed
@@ -53,6 +54,7 @@ class InternalProvider(Provider):
     A lot of what should be done here is up to the implementer
     """
     html_template = None
+    expose = EXPOSE_LOCAL_PROVIDERS
 
     def render_html(self, data):
         """
@@ -95,6 +97,10 @@ class InternalProvider(Provider):
             return attr(self)
         else:
             return attr
+
+    def resize_maybe(self, width, height):
+        # TODO: How should this work??
+        pass
 
     def get_resource(self):
         url = self._params['url']

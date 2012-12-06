@@ -21,6 +21,7 @@ RESOURCE_OPTIONAL_ATTRS = ('title', 'author_name', 'author_url', 'cache_age',
 
 # Provider Settings
 CACHE_LOCAL_PROVIDERS = getattr(settings, 'MONOCLE_CACHE_LOCAL_PROVIDERS', False)
+EXPOSE_LOCAL_PROVIDERS = getattr(settings, 'MONOCLE_EXPOSE_LOCAL_PROVIDERS', True)
 
 
 # HTTP/Network settings
@@ -35,3 +36,5 @@ TASK_EXTERNAL_MAX_RETRIES = getattr(settings, 'MONOCLE_TASK_EXTERNAL_MAX_RETRIES
 
 # Cache Settings
 CACHE_KEY_PREFIX = getattr(settings, 'MONOCLE_CACHE_KEY_PREFIX', 'MONOCLE')
+CACHE_MIN_TTL = getattr(settings, 'MONOCLE_CACHE_MINIMUM_TTL', 60*60)  # 1 Hour
+CACHE_DEFAULT_TTL = getattr(settings, 'MONOCLE_CACHE_DEFAULT_TTL', 60*60*24*7)  # 1 Week
