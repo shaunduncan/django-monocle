@@ -25,8 +25,7 @@ class Provider(object):
         """Obtain the OEmbed resource JSON"""
         request_url = self.get_request_url()
 
-        cached, primed = get_or_prime(make_key(request_url),
-                                      primer=Resource(self._params['url']))
+        cached, primed = get_or_prime(request_url, primer=Resource(self._params['url']))
 
         if primed or cached.is_stale:
             request_external_oembed.apply_async(request_url)
@@ -101,7 +100,7 @@ class InternalProvider(Provider):
 
     def get_resource(self):
         url = self._params['url']
-        cache_key = make_key('INTERNAL', url)
+        cache_key = 'INTERNAL:%s' % url
 
         if settings.CACHE_LOCAL_PROVIDERS:
             cached, primed = get_or_prime(cache_key, primer=Resource(url))
