@@ -6,10 +6,7 @@ from django.template.loader import get_template
 
 from monocle.cache import get_or_prime, make_key
 from monocle.resources import Resource
-from monocle.settings import (CACHE_LOCAL_PROVIDERS,
-                              EXPOSE_LOCAL_PROVIDERS,
-                              RESOURCE_REQUIRED_ATTRS,
-                              RESOURCE_OPTIONAL_ATTRS)
+from monocle.settings import settings
 from monocle.tasks import request_external_oembed
 
 
@@ -54,7 +51,7 @@ class InternalProvider(Provider):
     A lot of what should be done here is up to the implementer
     """
     html_template = None
-    expose = EXPOSE_LOCAL_PROVIDERS
+    expose = settings.EXPOSE_LOCAL_PROVIDERS
 
     def render_html(self, data):
         """
@@ -106,7 +103,7 @@ class InternalProvider(Provider):
         url = self._params['url']
         cache_key = make_key('INTERNAL', url)
 
-        if CACHE_LOCAL_PROVIDERS:
+        if settings.CACHE_LOCAL_PROVIDERS:
             cached, primed = get_or_prime(cache_key, primer=Resource(url))
             if not primed:
                 return cached
@@ -118,18 +115,18 @@ class InternalProvider(Provider):
         }
 
         # Apply required attributes by resource type
-        for attr in RESOURCE_REQUIRED_ATTRS[self.resource_type]:
+        for attr in settings.RESOURCE_REQUIRED_ATTRS[self.resource_type]:
             data[attr] = self._data_attribute(attr, required=True)
 
         # Optional attributes
-        for attr in RESOURCE_OPTIONAL_ATTRS:
+        for attr in settings.RESOURCE_OPTIONAL_ATTRS:
             data[attr] = self._data_attribute(attr)
 
         # TODO : CONSTRAIN TO MAXWIDTH/MAXHEIGHT
 
         resource = Resource(url, data)
 
-        if CACHE_LOCAL_PROVIDERS:
+        if settings.CACHE_LOCAL_PROVIDERS:
             cache.set(cache_key, resource, timeout=resource.ttl)
 
         return resource

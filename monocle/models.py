@@ -1,7 +1,10 @@
 from django.db import models
 
 from monocle.providers import Provider
-from monocle.settings import RESOURCE_CHOICES
+from monocle.settings import settings
+
+
+RESOURCE_CHOICES = [(x, x.capitalize()) for x in settings.RESOURCE_TYPES]
 
 
 class ThirdPartyProvider(models.Model, Provider):

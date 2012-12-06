@@ -1,6 +1,6 @@
 import json
 
-from monocle.settings import CACHE_MIN_TTL, CACHE_DEFAULT_TTL
+from monocle.settings import settings
 
 
 class Resource(object):
@@ -36,15 +36,18 @@ class Resource(object):
         a configurable default TTL is used
         """
         try:
-            return max(CACHE_MIN_TTL, int(self._data.get('cache_age', CACHE_DEFAULT_TTL)))
+            return max(settings.RESOURCE_MIN_TTL,
+                       int(self._data.get('cache_age', settings.RESOURCE_DEFAULT_TTL)))
         except ValueError:
-            return CACHE_DEFAULT_TTL
+            return settings.RESOURCE_DEFAULT_TTL
 
     def set_ttl(self, value):
         try:
-            value = max(CACHE_MIN_TTL, int(value))
+            value = max(settings.RESOURCE_MIN_TTL, int(value))
         except ValueError:
-            value = CACHE_DEFAULT_TTL
+            value = settings.RESOURCE_DEFAULT_TTL
         self._data['cache_age'] = value
 
     ttl = property(get_ttl, set_ttl)
+
+    # TODO: Need creation date and a way to check if expired

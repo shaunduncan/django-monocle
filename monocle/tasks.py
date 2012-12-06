@@ -6,17 +6,14 @@ from django.core.cache import cache
 
 from monocle.cache import make_key
 from monocle.resources import Resource
-from monocle.settings import (HTTP_TIMEOUT,
-                              TASK_QUEUE,
-                              TASK_EXTERNAL_MAX_RETRIES,
-                              TASK_EXTERNAL_RETRY_DELAY)
+from monocle.settings import settings
 from monocle.util import extract_content_url
 
 
-@task(queue=TASK_QUEUE,
+@task(queue=settings.TASK_QUEUE,
       ignore_result=True,
-      max_retries=TASK_EXTERNAL_MAX_RETRIES,
-      default_retry_delay=TASK_EXTERNAL_RETRY_DELAY)
+      max_retries=settings.TASK_EXTERNAL_MAX_RETRIES,
+      default_retry_delay=settings.TASK_EXTERNAL_RETRY_DELAY)
 def request_external_oembed(url):
     """
     Obtains an oembed resource from an external provider with
@@ -27,7 +24,7 @@ def request_external_oembed(url):
     logger.info('Requesting OEmbed Resource %s' % url)
 
     try:
-        request = urllib2.urlopen(url, timeout=HTTP_TIMEOUT)
+        request = urllib2.urlopen(url, timeout=settings.HTTP_TIMEOUT)
     except urllib2.HTTPError, e:
         logger.error('Failed to obtain %s : Status %s' % (url, e.code))
     except urllib2.URLError, e:
@@ -50,6 +47,6 @@ def request_external_oembed(url):
                 logger.error('OEmbed response from %s contains invalid JSON' % url)
             else:
                 # Update the cache with this data
-                cache.set(make_key(url), resource, timeout=resource.ttl)
+                cache.set(make_key(url), resource, timeout=settings.CACHE_AGE)
             finally:
                 request.close()
