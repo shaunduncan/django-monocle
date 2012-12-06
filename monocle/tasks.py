@@ -2,9 +2,8 @@ import json
 import urllib2
 
 from celery.task import task
-from django.core.cache import cache
 
-from monocle.cache import make_key
+from monocle.cache import cache
 from monocle.resources import Resource
 from monocle.settings import settings
 from monocle.util import extract_content_url
@@ -47,6 +46,6 @@ def request_external_oembed(url):
                 logger.error('OEmbed response from %s contains invalid JSON' % url)
             else:
                 # Update the cache with this data
-                cache.set(make_key(url), resource, timeout=settings.CACHE_AGE)
+                cache.set(url, resource)
             finally:
                 request.close()

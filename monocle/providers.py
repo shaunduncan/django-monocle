@@ -1,10 +1,9 @@
 from urllib import urlencode
 
-from django.core.cache import cache
 from django.template import Context
 from django.template.loader import get_template
 
-from monocle.cache import get_or_prime, make_key
+from monocle.cache import cache
 from monocle.resources import Resource
 from monocle.settings import settings
 from monocle.tasks import request_external_oembed
@@ -25,7 +24,7 @@ class Provider(object):
         """Obtain the OEmbed resource JSON"""
         request_url = self.get_request_url()
 
-        cached, primed = get_or_prime(request_url, primer=Resource(self._params['url']))
+        cached, primed = cache.get_or_prime(request_url, primer=Resource(self._params['url']))
 
         if primed or cached.is_stale:
             request_external_oembed.apply_async(request_url)
@@ -103,8 +102,8 @@ class InternalProvider(Provider):
         cache_key = 'INTERNAL:%s' % url
 
         if settings.CACHE_LOCAL_PROVIDERS:
-            cached, primed = get_or_prime(cache_key, primer=Resource(url))
-            if not primed:
+            cached, primed = cache.get_or_prime(cache_key, primer=Resource(url))
+            if not primed and not cached.is_stale:
                 return cached
 
         # These are always required
@@ -126,6 +125,6 @@ class InternalProvider(Provider):
         resource = Resource(url, data)
 
         if settings.CACHE_LOCAL_PROVIDERS:
-            cache.set(cache_key, resource, timeout=resource.ttl)
+            cache.set(cache_key, resource)
 
         return resource
