@@ -1,5 +1,7 @@
 import json
 
+from datetime import datetime
+
 from monocle.settings import settings
 
 
@@ -11,6 +13,8 @@ class Resource(object):
 
     def __init__(self, url, data=None):
         self.url = url
+        self.created = datetime.utcnow()
+
         if data:
             self._data = data
 
@@ -24,6 +28,17 @@ class Resource(object):
             self.ttl = value
         else:
             self._data[attr] = value
+
+    @property
+    def is_stale(self):
+        """
+        Returns True if this resource's age since it was created
+        is greater than it's TTL
+        """
+        delta = datetime.utcnow() - self.created
+        age = (delta.days * 60 * 60 * 24) + delta.seconds
+
+        return age > self.ttl
 
     @property
     def json(self):
@@ -49,5 +64,3 @@ class Resource(object):
         self._data['cache_age'] = value
 
     ttl = property(get_ttl, set_ttl)
-
-    # TODO: Need creation date and a way to check if expired

@@ -28,7 +28,7 @@ class Provider(object):
         cached, primed = get_or_prime(make_key(request_url),
                                       primer=Resource(self._params['url']))
 
-        if primed:
+        if primed or cached.is_stale:
             request_external_oembed.apply_async(request_url)
 
         return cached

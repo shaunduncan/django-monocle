@@ -32,13 +32,13 @@ class Settings(object):
 
     @property
     def RESOURCE_MIN_TTL(self):
-        """Minimum TTL for OEmbed resource to be considered fresh"""
+        """Minimum TTL for OEmbed resource to be considered fresh (in seconds)"""
         # 1 Hour Default
         return getattr(_settings, 'MONOCLE_CACHE_MINIMUM_TTL', 60*60)
 
     @property
     def RESOURCE_DEFAULT_TTL(self):
-        """Default TTL for OEmbed resource to be considered fresh"""
+        """Default TTL for OEmbed resource to be considered fresh (in seconds)"""
         # 1 Week Default
         return getattr(_settings, 'MONOCLE_CACHE_DEFAULT_TTL', 60*60*24*7)
 
