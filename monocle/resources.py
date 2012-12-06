@@ -21,7 +21,7 @@ class Resource(object):
 
     def __setattr__(self, attr, value):
         if attr == 'cache_age':
-            self.set_ttl(value)
+            self.ttl = value
         else:
             self._data[attr] = value
 
