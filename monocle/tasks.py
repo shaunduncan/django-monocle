@@ -10,7 +10,7 @@ from monocle.settings import settings
 from monocle.util import extract_content_url
 
 
-class RequestExternalOembedTask(Task):
+class RequestExternalOEmbedTask(Task):
     """
     Fetch an oembed resource from an external provider with
     sensible task retry. Results are expected to be valid JSON
