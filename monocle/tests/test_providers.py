@@ -63,4 +63,29 @@ class ProviderTestCase(TestCase):
 
 
 class LocalProviderTestCase(TestCase):
-    pass
+
+    def setUp(self):
+        self.resource_url = 'http://example.com/resource'
+        self.provider = InternalProvider(self.resource_url)
+
+    def test_data_attribute_raises_required(self):
+        self.provider.foo = None
+
+        with self.assertRaises(NotImplementedError):
+            self.provider._data_attribute('foo', required=True)
+
+    def test_data_attribute_does_not_raise(self):
+        self.provider.foo = None
+        result = self.provider._data_attribute('foo')
+        self.assertIsNone(result)
+
+    def test_data_attribute_calls_callable(self):
+        self.provider.foo = Mock()
+        self.provider.foo.return_value = 'foo'
+        result = self.provider._data_attribute('foo')
+        self.assertEqual('foo', result)
+
+    def test_data_attribute_property(self):
+        self.provider.foo = 'foo'
+        result = self.provider._data_attribute('foo')
+        self.assertEqual('foo', result)
