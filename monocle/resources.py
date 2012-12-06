@@ -58,13 +58,13 @@ class Resource(object):
         try:
             return max(settings.RESOURCE_MIN_TTL,
                        int(self._data.get('cache_age', settings.RESOURCE_DEFAULT_TTL)))
-        except ValueError:
+        except (ValueError, TypeError):
             return settings.RESOURCE_DEFAULT_TTL
 
     def set_ttl(self, value):
         try:
             value = max(settings.RESOURCE_MIN_TTL, int(value))
-        except ValueError:
+        except (ValueError, TypeError):
             value = settings.RESOURCE_DEFAULT_TTL
         self._data['cache_age'] = value
 
