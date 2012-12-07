@@ -1,3 +1,5 @@
+import warnings
+
 from urllib import urlencode
 
 from django.template import Context
@@ -40,18 +42,22 @@ class Provider(object):
 
     @property
     def maxwidth(self):
-        return self._params.get('maxwidth')
+        return self._params.get('maxwidth', 0)
 
     @property
     def maxheight(self):
-        return self._params.get('maxheight')
+        return self._params.get('maxheight', 0)
 
 
 class InternalProvider(Provider):
     """
     An internal provider that does not require any network operation.
-    A lot of what should be done here is up to the implementer
+    A lot of what should be done here is up to the implementer.
     """
+
+    # A list of tuples of valid size dimensions: (width, height)
+    DIMENSIONS = []
+
     html_template = None
     expose = settings.EXPOSE_LOCAL_PROVIDERS
 
@@ -97,9 +103,38 @@ class InternalProvider(Provider):
         else:
             return attr
 
-    def resize_maybe(self, width, height):
-        # TODO: How should this work??
-        pass
+    def nearest_allowed_size(self, width, height):
+        """
+        Get the nearest size dimension below a maximum dimension. The dimension
+        threshold is the minimum of the specified size and requested maximum size.
+        The return value will either be the largest allowed size below the maximum
+        or will be the maximum if no allowed size can be found
+        """
+        maxdim = (width, height)
+
+        if self.maxwidth:
+            maxdim = (min(width, self.maxwidth), maxdim[1])
+
+        if self.maxheight:
+            maxdim = (maxdim[0], min(height, self.maxheight))
+
+        dims = getattr(self, 'DIMENSIONS', settings.RESOURCE_DEFAULT_DIMENSIONS)
+        smaller = lambda x, y: x[0] <= y[0] and x[1] <= y[1]
+        valid_sizes = [d for d in dims if smaller(d, maxdim)]
+
+        if valid_sizes:
+            return sorted(valid_sizes, reverse=True)[0]
+        else:
+            return maxdim
+
+    def _check_dimension(self, width, height, message=None):
+        """
+        Raises a warning with optional message if width and height exceeds the maximum
+        allowable size as defined by this provider
+        """
+        new_width, new_height = self.nearest_allowed_size(width, height)
+        if new_width < width or new_height < height:
+            warnings.warn(message or 'Resource size exceeds allowable dimensions')
 
     def _build_resource(self):
         url = self._params['url']
@@ -118,7 +153,14 @@ class InternalProvider(Provider):
         for attr in settings.RESOURCE_OPTIONAL_ATTRS:
             data[attr] = self._data_attribute(attr)
 
-        # TODO : CONSTRAIN TO MAXWIDTH/MAXHEIGHT
+        # Raise a warning if width/height exceed maximum requested and scale
+        # TODO: I'm still not convinced this is the right way to handle this
+        if 'width' in data and 'height' in data:
+            self._check_dimension(data['width'], data['height'])
+
+        if 'thumbnail_width' in data and 'thumbnail_height' in data:
+            self._check_dimension(data['thumbnail_width'], data['thumbnail_height'],
+                                  'Thumbnail size exceeds allowable dimensions')
 
         return Resource(url, data)
 

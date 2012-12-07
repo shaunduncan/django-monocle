@@ -31,6 +31,14 @@ class Settings(object):
         )
 
     @property
+    def RESOURCE_DEFAULT_DIMENSIONS(self):
+        """
+        Default dimensions for internal providers if implementations do not
+        define valid sizes.
+        """
+        return [(x, x) for x in xrange(100, 1000, 100)]
+
+    @property
     def RESOURCE_MIN_TTL(self):
         """Minimum TTL for OEmbed resource to be considered fresh (in seconds)"""
         # 1 Hour Default

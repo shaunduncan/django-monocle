@@ -167,3 +167,21 @@ class InternalProviderTestCase(TestCase):
         resource = self.provider.get_resource()
         self.assertFalse(resource.is_stale)
         self.assertTrue(self.provider._build_resource.called)
+
+    def test_nearest_allowed_size_returns_original_size(self):
+        self.provider.DIMENSIONS = [(50, 50), (100, 100), (200, 200)]
+        self.assertEqual((25, 25), self.provider.nearest_allowed_size(25, 25))
+
+    def test_nearest_allowed_size_returns_requested_max(self):
+        self.provider._params['maxwidth'] = 50
+        self.provider._params['maxheight'] = 50
+        self.provider.DIMENSIONS = [(150, 150), (200, 200)]
+
+        self.assertEqual((50, 50), self.provider.nearest_allowed_size(100, 100))
+
+    def test_nearest_allowed_size_gets_nearest_size(self):
+        self.provider._params['maxwidth'] = 500
+        self.provider._params['maxheight'] = 500
+        self.provider.DIMENSIONS = [(50, 50), (100, 100), (200, 200)]
+
+        self.assertEqual((100, 100), self.provider.nearest_allowed_size(150, 150))
