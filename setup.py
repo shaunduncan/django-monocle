@@ -16,9 +16,10 @@ setup(name='django-monocle',
                    'Topic :: Utilities'],
       keywords='oembed rich content scalability',
       author='Shaun Duncan',
-      author_email='opensource@coxinc.com',
+      author_email='shaun.duncan@coxinc.com',
       url='http://www.github.com/coxmediagroup/django-monocle/',
       download_url='https://github.com/coxmediagroup/django-monocle/downloads',
       license='BSD',
       packages=find_packages(),
+      install_requires=['celery']
       )
