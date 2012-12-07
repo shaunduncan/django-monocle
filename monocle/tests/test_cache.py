@@ -11,7 +11,7 @@ class CacheTestCase(TestCase):
         # Check that we primed
         cached, primed = cache.get_or_prime('foo', primer='bar')
         self.assertTrue(primed)
-        self.assertEquals(cached, 'bar')
+        self.assertEqual(cached, 'bar')
 
         # Subsequent call should not prime
         cached, primed = cache.get_or_prime('foo', primer='baz')
