@@ -49,9 +49,6 @@ class ThirdPartyProvider(models.Model, Provider):
         if re.match(r'\*\.?(\w{3}|(\w{2}\.)?\w{2})$', parts.netloc):
             raise ValidationError('URL Scheme is too agressive')
 
-        if url.startswith('https://')
-        url = self.url_scheme
-
 
 def _update_provider(sender, instance, created, **kwargs):
     """Post-save signal callback"""

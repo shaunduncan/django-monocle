@@ -31,7 +31,11 @@ class OEmbedCharField(fields.CharField):
         content = getattr(model, self.attname)
 
         # Send it off
-        devour(content, html=self.contains_html, sizes=self.prefetch_sizes)
+        if not self.prefetch_sizes:
+            devour(content, html=self.contains_html)
+        else:
+            for size in self.prefetch_sizes:
+                devour(content, html=self.contains_html, maxwidth=size[0], maxheight=size[1])
 
         return super(OEmbedCharField, self).pre_save(model, add)
 
@@ -64,6 +68,10 @@ class OEmbedTextField(fields.TextField):
         content = getattr(model, self.attname)
 
         # Send it off
-        devour(content, html=self.contains_html, sizes=self.prefetch_sizes)
+        if not self.prefetch_sizes:
+            devour(content, html=self.contains_html)
+        else:
+            for size in self.prefetch_sizes:
+                devour(content, html=self.contains_html, maxwidth=size[0], maxheight=size[1])
 
         return super(OEmbedCharField, self).pre_save(model, add)
