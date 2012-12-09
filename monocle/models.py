@@ -1,3 +1,8 @@
+import re
+
+from urlparse import urlparse
+
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from monocle.providers import Provider, registry
@@ -22,13 +27,30 @@ class ThirdPartyProvider(models.Model, Provider):
     class Meta:
         ordering = ('api_endpoint', 'resource_type')
 
-    # TODO - Validation : the url_scheme must be valid according to spec
-    # OK: http://www.flickr.com/photos/*
-    # OK: http://www.flickr.com/photos/*/foo
-    # OK: http://*.flickr.com/photos/*
-    # NOT OK: https://www.flickr.com/photos/*
-    # NOT OK: http://*.com/photos/*
-    # NOT OK: *://www.flickr.com/photos/*
+    def clean(self):
+        """
+        Validate the URL scheme according to these examples
+
+        OK: http://www.flickr.com/photos/*
+        OK: http://www.flickr.com/photos/*/foo
+        OK: http://*.flickr.com/photos/*
+        NOT OK: https://www.flickr.com/photos/*
+        NOT OK: http://*.com/photos/*
+        NOT OK: *://www.flickr.com/photos/*
+        """
+        if not self.url_scheme:
+            raise ValidationError('URL Scheme is required')
+
+        parts = urlparse(self.url_scheme.lower())
+
+        if not parts.scheme or parts.scheme == 'https':
+            raise ValidationError('URL Scheme cannot be a wildcard and must not be HTTPS')
+
+        if re.match(r'\*\.?(\w{3}|(\w{2}\.)?\w{2})$', parts.netloc):
+            raise ValidationError('URL Scheme is too agressive')
+
+        if url.startswith('https://')
+        url = self.url_scheme
 
 
 def _update_provider(sender, instance, created, **kwargs):
