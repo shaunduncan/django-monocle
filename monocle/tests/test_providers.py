@@ -138,7 +138,7 @@ class InternalProviderTestCase(TestCase):
     @patch('monocle.providers.cache')
     def test_get_resource_cached_is_stale(self, mock_cache):
         # Update django settings
-        setattr(settings, 'MONOCLE_CACHE_LOCAL_PROVIDERS', True)
+        setattr(settings, 'MONOCLE_CACHE_INTERNAL_PROVIDERS', True)
 
         resource = Resource(self.resource_url)
         resource.created = resource.created.replace(year=1984)
@@ -155,7 +155,7 @@ class InternalProviderTestCase(TestCase):
     @patch('monocle.providers.cache')
     def test_get_resource_cached_is_primed(self, mock_cache):
         # Update django settings
-        setattr(settings, 'MONOCLE_CACHE_LOCAL_PROVIDERS', True)
+        setattr(settings, 'MONOCLE_CACHE_INTERNAL_PROVIDERS', True)
 
         resource = Resource(self.resource_url)
 

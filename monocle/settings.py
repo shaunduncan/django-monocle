@@ -51,9 +51,9 @@ class Settings(object):
         return getattr(_settings, 'MONOCLE_CACHE_DEFAULT_TTL', 60*60*24*7)
 
     @property
-    def CACHE_LOCAL_PROVIDERS(self):
+    def CACHE_INTERNAL_PROVIDERS(self):
         """Setting to indicate if local providers should cache resources"""
-        return getattr(_settings, 'MONOCLE_CACHE_LOCAL_PROVIDERS', False)
+        return getattr(_settings, 'MONOCLE_CACHE_INTERNAL_PROVIDERS', False)
 
     @property
     def EXPOSE_LOCAL_PROVIDERS(self):
