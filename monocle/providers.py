@@ -1,3 +1,4 @@
+import re
 import warnings
 
 from urllib import urlencode
@@ -11,6 +12,10 @@ from monocle.settings import settings
 from monocle.tasks import request_external_oembed
 
 
+class InvalidProvider(Exception):
+    pass
+
+
 class Provider(object):
     api_endpoint = None
     url_scheme = None
@@ -21,6 +26,16 @@ class Provider(object):
         self._params = kwargs
         self._params['url'] = url
         self._params['format'] = 'json'
+
+        # Prepare rege pattern substituting wildcards for non-greedy match-all
+        self.url_re = re.compile(self.url_scheme.replace('*', '.*?'), re.I)
+
+    def set_max_dimensions(self, width=None, height=None):
+        if width:
+            self._params['maxwidth']
+
+        if height:
+            self._params['maxheight']
 
     def get_resource(self):
         """Obtain the OEmbed resource JSON"""
@@ -47,6 +62,9 @@ class Provider(object):
     @property
     def maxheight(self):
         return self._params.get('maxheight', 0)
+
+    def match(self, url):
+        return self.url_re.match(url)
 
 
 class InternalProvider(Provider):
@@ -167,7 +185,7 @@ class InternalProvider(Provider):
     def get_resource(self):
         url = self._params['url']
 
-        if settings.CACHE_LOCAL_PROVIDERS:
+        if settings.CACHE_INTERNAL_PROVIDERS:
             cache_key = 'INTERNAL:%s' % url
             cached, primed = cache.get_or_prime(cache_key, primer=Resource(url))
 
@@ -183,3 +201,95 @@ class InternalProvider(Provider):
 
         # No caching, build directly
         return self._build_resource()
+
+
+class ProviderRegistry(object):
+    """
+    Storage mechanism for providers to quickly identify a match
+    """
+    # Separate internal and external providers. Prefer internal first
+    _providers = {'internal': [], 'external': []}
+
+    def ensure(self):
+        if self._providers:
+            return
+
+        # BOO circular import prevention
+        from monocle.models import ThirdPartyProvider
+
+        # Populate with things we know about: models
+        for provider in ThirdPartyProvider.objects.all():
+            self.register(provider, ensure=False)
+
+    def _provider_type(self, provider):
+        """
+        Resolves the provider type as internal or external
+        """
+        if isinstance(provider, InternalProvider):
+            return 'internal'
+        else:
+            return 'external'
+
+    def update(self, provider):
+        """
+        Updates an entry in the registry with one provided
+        """
+        self.ensure()
+        type = self._provider_type(provider)
+
+        try:
+            idx = self._providers[type].index(provider)
+        except ValueError:
+            # Provider not in the registry
+            self._providers[type].append(provider)
+        else:
+            self._providers[type][idx] = provider
+
+    def unregister(self, provider):
+        """
+        Removes a provider from the registry.
+        """
+        self.ensure()
+        type = self._provider_type(provider)
+
+        try:
+            self._providers[type].remove(provider)
+        except ValueError:
+            # Provider not in the list
+            pass
+
+    def match(self, url):
+        """
+        Locates the first provider that matches the URL. This
+        prefers matching internal providers over external providers
+        """
+        self.ensure()
+
+        return self.match_type(url, 'internal') or self.match_type(url, 'external')
+
+    def match_type(self, url, type):
+        """
+        Searches the internal provider registry for a matching
+        provider for the url based on type
+        """
+        for provider in self._providers[type]:
+            if provider.match(url):
+                return provider
+        return None
+
+    def register(self, provider, ensure=True):
+        """
+        Adds a provider to the internal registry. Must supply
+        a valid instance of Provider
+        """
+        if ensure:
+            self.ensure()
+
+        if not isinstance(provider, Provider):
+            raise InvalidProvider('Object %s is not a valid Provider type' % provider)
+
+        type = self._provider_type(provider)
+        self._providers[type].append(provider)
+
+
+registry = ProviderRegistry()

@@ -1,6 +1,6 @@
 from django.db import models
 
-from monocle.providers import Provider
+from monocle.providers import Provider, registry
 from monocle.settings import settings
 
 
@@ -21,3 +21,26 @@ class ThirdPartyProvider(models.Model, Provider):
 
     class Meta:
         ordering = ('api_endpoint', 'resource_type')
+
+    # TODO - Validation : the url_scheme must be valid according to spec
+    # OK: http://www.flickr.com/photos/*
+    # OK: http://www.flickr.com/photos/*/foo
+    # OK: http://*.flickr.com/photos/*
+    # NOT OK: https://www.flickr.com/photos/*
+    # NOT OK: http://*.com/photos/*
+    # NOT OK: *://www.flickr.com/photos/*
+
+
+def _update_provider(sender, instance, created, **kwargs):
+    """Post-save signal callback"""
+    registry.update(instance)
+
+
+def _unregister_provider(sender, instance, **kwargs):
+    """Post-delete signal callback"""
+    registry.unregister(instance)
+
+
+# Connect signals
+models.signals.post_save.connect(_update_provider, sender=ThirdPartyProvider)
+models.signals.post_delete.connect(_unregister_provider, sender=ThirdPartyProvider)
