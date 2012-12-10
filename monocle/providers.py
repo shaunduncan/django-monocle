@@ -21,11 +21,7 @@ class Provider(object):
     url_scheme = None
     resource_type = None
     expose = False  # Expose this provider externally
-
-    def __init__(self, url=None, **kwargs):
-        self._params = kwargs
-        self._params['url'] = url
-        self._params['format'] = 'json'
+    _params = {}
 
     def set_max_dimensions(self, width=None, height=None):
         if width:
@@ -34,10 +30,11 @@ class Provider(object):
         if height:
             self._params['maxheight']
 
-    def get_resource(self, url=None):
+    def get_resource(self, url, **kwargs):
         """Obtain the OEmbed resource JSON"""
-        if url:
-            self._params['url'] = url
+        self._params = kwargs
+        self._params['url'] = url
+        self._params['format'] = 'json'
 
         request_url = self.get_request_url()
 
@@ -157,9 +154,7 @@ class InternalProvider(Provider):
         if new_width < width or new_height < height:
             warnings.warn(message or 'Resource size exceeds allowable dimensions')
 
-    def _build_resource(self):
-        url = self._params['url']
-
+    def _build_resource(self, url):
         # These are always required
         data = {
             'type': self.resource_type,
@@ -185,11 +180,10 @@ class InternalProvider(Provider):
 
         return Resource(url, data)
 
-    def get_resource(self, url=None):
-        if url:
-            self._params['url'] = url
-        else:
-            url = self._params['url']
+    def get_resource(self, url, **kwargs):
+        self._params = kwargs
+        self._params['url'] = url
+        self._params['format'] = 'json'
 
         if settings.CACHE_INTERNAL_PROVIDERS:
             cache_key = 'INTERNAL:%s' % url
@@ -200,13 +194,13 @@ class InternalProvider(Provider):
                 if cached.is_stale:
                     cache.set(cache_key, cached.fresh())
 
-                cached = self._build_resource()
+                cached = self._build_resource(url)
                 cache.set(cache_key, cached)
 
             return cached
 
         # No caching, build directly
-        return self._build_resource()
+        return self._build_resource(url)
 
 
 class ProviderRegistry(object):
