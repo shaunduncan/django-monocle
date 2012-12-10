@@ -49,6 +49,13 @@ class ThirdPartyProvider(models.Model, Provider):
         if re.match(r'\*\.?(\w{3}|(\w{2}\.)?\w{2})$', parts.netloc):
             raise ValidationError('URL Scheme is too agressive')
 
+        # VALIDATE API ENDPOINT
+        if not self.api_endpoint:
+            raise ValidationError('API Endpoint is required')
+
+        if self.api_endpoint.lower().startswith('https'):
+            raise ValidationError('API Endpoint cannot be a HTTPS endpoint')
+
 
 def _update_provider(sender, instance, created, **kwargs):
     """Post-save signal callback"""

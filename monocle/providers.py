@@ -22,13 +22,10 @@ class Provider(object):
     resource_type = None
     expose = False  # Expose this provider externally
 
-    def __init__(self, url, **kwargs):
+    def __init__(self, url=None, **kwargs):
         self._params = kwargs
         self._params['url'] = url
         self._params['format'] = 'json'
-
-        # Prepare rege pattern substituting wildcards for non-greedy match-all
-        self.url_re = re.compile(self.url_scheme.replace('*', '.*?'), re.I)
 
     def set_max_dimensions(self, width=None, height=None):
         if width:
@@ -37,8 +34,11 @@ class Provider(object):
         if height:
             self._params['maxheight']
 
-    def get_resource(self):
+    def get_resource(self, url=None):
         """Obtain the OEmbed resource JSON"""
+        if url:
+            self._params['url'] = url
+
         request_url = self.get_request_url()
 
         cached, primed = cache.get_or_prime(request_url, primer=Resource(self._params['url']))
@@ -64,7 +64,10 @@ class Provider(object):
         return self._params.get('maxheight', 0)
 
     def match(self, url):
-        return self.url_re.match(url)
+        if self.url_scheme:
+            return re.match(self.url_scheme.replace('*', '.*?'), url, re.I)
+        else:
+            return False
 
 
 class InternalProvider(Provider):
@@ -182,8 +185,11 @@ class InternalProvider(Provider):
 
         return Resource(url, data)
 
-    def get_resource(self):
-        url = self._params['url']
+    def get_resource(self, url=None):
+        if url:
+            self._params['url'] = url
+        else:
+            url = self._params['url']
 
         if settings.CACHE_INTERNAL_PROVIDERS:
             cache_key = 'INTERNAL:%s' % url
@@ -210,6 +216,10 @@ class ProviderRegistry(object):
     # Separate internal and external providers. Prefer internal first
     _providers = {'internal': [], 'external': []}
 
+    def __contains__(self, provider):
+        self.ensure()
+        return provider in self._providers[self._provider_type(provider)]
+
     def ensure(self):
         if self._providers:
             return
@@ -229,6 +239,10 @@ class ProviderRegistry(object):
             return 'internal'
         else:
             return 'external'
+
+    def clear(self):
+        """Clears the internal provider registry"""
+        self._providers = {'internal': [], 'external': []}
 
     def update(self, provider):
         """

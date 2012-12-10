@@ -41,7 +41,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 ROOT_URLCONF = 'monocle.tests.urls'
-TEMPLATE_DIRS = ()
+TEMPLATE_DIRS = ('monocle/templates',)
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',

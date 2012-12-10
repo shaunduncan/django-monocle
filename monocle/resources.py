@@ -1,6 +1,10 @@
 import json
+import os
 
 from datetime import datetime
+
+from django.template import Context
+from django.template.loader import get_template
 
 from monocle.settings import settings
 
@@ -18,7 +22,7 @@ class Resource(object):
     def __getitem__(self, key):
         if key == 'cache_age':
             return self.ttl
-        return self._data.get(key)
+        return self._data.get(key, '')
 
     def __setitem__(self, key, value):
         if key == 'cache_age':
@@ -28,6 +32,47 @@ class Resource(object):
 
     def __contains__(self, key):
         return key in self._data
+
+    def render(self):
+        """Render this resource to the correct template for proper embedding"""
+        if not self.is_valid:
+            if settings.RESOURCE_URLIZE_INVALID:
+                template_name = 'monocle/link.html'
+            else:
+                return self.url
+        else:
+            template_name = os.path.join('monocle', '%s.html' % self._data['type'])
+
+        template = get_template(template_name)
+        return template.render(Context({'url': self.url, 'resource': self}))
+
+    @property
+    def is_valid(self):
+        """
+        Perform validation against this resource object. The resource is considered
+        valid if it meets the following criteria:
+
+        - It has oembed response data
+        - It is a valid oembed resource type
+        - It has the required attributes based on its type
+        """
+        # We can create resources without valid data
+        if not self._data:
+            return False
+
+        # Must be a valid type
+        if self._data.get('type') not in settings.RESOURCE_TYPES:
+            return False
+
+        # Must have required fields
+        has_required = True
+        for field in settings.RESOURCE_REQUIRED_ATTRS[self._data['type']]:
+            has_required = has_required and (field in self._data)
+
+        if not has_required:
+            return False
+
+        return True
 
     @property
     def is_stale(self):

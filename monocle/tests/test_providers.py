@@ -4,7 +4,8 @@ from urllib import urlencode
 
 from django.conf import settings
 
-from monocle.providers import Provider, InternalProvider
+from monocle.models import ThirdPartyProvider
+from monocle.providers import Provider, InternalProvider, ProviderRegistry
 from monocle.resources import Resource
 
 
@@ -62,6 +63,14 @@ class ProviderTestCase(TestCase):
 
         self.provider.get_resource()
         self.assertFalse(mock_task.called)
+
+    def test_match_provides(self):
+        self.provider.url_scheme = 'http://*.foo.com/bar'
+        self.assertTrue(self.provider.match('http://sub.blah.foo.com/bar'))
+
+    def test_match_does_not_provide(self):
+        self.provider.url_scheme = 'http://*.foo.com/bar'
+        self.assertFalse(self.provider.match('http://youtube.com/video'))
 
 
 class InternalProviderTestCase(TestCase):
@@ -185,3 +194,80 @@ class InternalProviderTestCase(TestCase):
         self.provider.DIMENSIONS = [(50, 50), (100, 100), (200, 200)]
 
         self.assertEqual((100, 100), self.provider.nearest_allowed_size(150, 150))
+
+
+class ProviderRegistryTestCase(TestCase):
+    def setUp(self):
+        self.external = Provider('http://example.com')
+        self.internal = InternalProvider('http://example.com')
+        self.registry = ProviderRegistry()
+        self.stored = self.make_provider()
+
+    def tearDown(self):
+        self.stored.delete()
+
+    def make_provider(self):
+        return ThirdPartyProvider.objects.create(url_scheme='http://*.youtube.com',
+                                                 api_endpoint='http://youtube.com/oembed',
+                                                 resource_type='video')
+
+    def test_provider_type_internal(self):
+        self.assertEqual('internal', self.registry._provider_type(self.internal))
+
+    def test_provider_type_external(self):
+        self.assertEqual('external', self.registry._provider_type(self.external))
+
+    def test_ensure_adds_stored(self):
+        self.registry.ensure()
+        self.assertIn(self.stored, self.registry)
+
+    def test_update_adds_missing_from_signal(self):
+        provider = ThirdPartyProvider(url_scheme='http://*.foobar.com',
+                                      api_endpoint='http://example.com',
+                                      resource_type='photo')
+        self.assertNotIn(provider, self.registry)
+
+        # Signal updates
+        provider.save()
+
+        self.assertIn(provider, self.registry)
+
+    def test_update_adds_missing_internal(self):
+        self.registry.clear()
+        self.assertNotIn(self.internal, self.registry)
+        self.registry.update(self.internal)
+        self.assertIn(self.internal, self.registry)
+
+    def test_update(self):
+        self.registry.clear()
+        self.registry.ensure()
+
+        self.stored.foo = 'FOO'
+        self.registry.update(self.stored)
+
+        self.assertEqual(getattr(self.registry._providers['external'][0], 'foo', None), 'FOO')
+
+    def test_unregister(self):
+        self.registry.ensure()
+        self.assertIn(self.stored, self.registry)
+        self.registry.unregister(self.stored)
+        self.assertNotIn(self.stored, self.registry)
+
+    def test_register(self):
+        self.registry.clear()
+        self.assertNotIn(self.internal, self.registry)
+        self.registry.register(self.internal)
+        self.assertIn(self.internal, self.registry)
+
+    def test_match_prefers_internal(self):
+        # Internal should be mirror copy
+        self.internal.url_scheme = self.stored.url_scheme
+
+        self.registry.clear()
+        self.registry.ensure()
+        self.registry.register(self.internal)
+
+        self.assertEqual(self.internal, self.registry.match('http://www.youtube.com'))
+
+    def test_match_has_no_match(self):
+        self.assertIsNone(self.registry.match('FOO'))

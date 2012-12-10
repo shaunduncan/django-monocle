@@ -51,6 +51,11 @@ class Settings(object):
         return getattr(_settings, 'MONOCLE_CACHE_DEFAULT_TTL', 60*60*24*7)
 
     @property
+    def RESOURCE_URLIZE_INVALID(self):
+        """Should rendered resources bet URLized if they are invalid"""
+        return getattr(_settings, 'MONOCLE_RESOURCE_URLIZE_INVALID', True)
+
+    @property
     def CACHE_INTERNAL_PROVIDERS(self):
         """Setting to indicate if local providers should cache resources"""
         return getattr(_settings, 'MONOCLE_CACHE_INTERNAL_PROVIDERS', False)

@@ -49,3 +49,52 @@ class ResourceTestCase(TestCase):
         # Make it stale
         self.resource.created = self.resource.created.replace(year=1984)
         self.assertTrue(self.resource.is_stale)
+
+    def test_is_valid_has_required_attrs(self):
+        self.resource._data = {
+            'type': 'video',
+            'html': 'foo',
+            'width': 100,
+            'height': 100
+        }
+        self.assertTrue(self.resource.is_valid)
+
+    def test_is_valid_missing_required(self):
+        self.resource._data = {
+            'type': 'video',
+            'html': 'foo',
+        }
+        self.assertFalse(self.resource.is_valid)
+
+    def test_is_valid_invalid_type(self):
+        self.resource._data = {
+            'type': 'flash'
+        }
+        self.assertFalse(self.resource.is_valid)
+
+    def test_render_urlizes(self):
+        setattr(_settings, 'MONOCLE_RESOURCE_URLIZE_INVALID', True)
+        self.assertIn('href="%s"' % self.resource.url, self.resource.render())
+
+    def test_render_does_not_urlize(self):
+        setattr(_settings, 'MONOCLE_RESOURCE_URLIZE_INVALID', False)
+        self.assertEqual(self.resource.url, self.resource.render())
+
+    def test_render_correct_for_type(self):
+        # Photo render <img/>
+        self.resource._data = {
+            'type': 'photo',
+            'url': 'http://foo.com/test.jpg',
+            'width': 100,
+            'height': 200
+        }
+        self.assertIn('<img src="http://foo.com/test.jpg"', self.resource.render())
+
+        # Rich/Video just handoff `html`
+        self.resource._data = {
+            'type': 'video',
+            'html': 'FooBar HTML Content',
+            'width': 100,
+            'height': 100
+        }
+        self.assertIn('FooBar HTML Content', self.resource.render())

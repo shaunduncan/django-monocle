@@ -7,6 +7,7 @@ from monocle.settings import settings
 
 
 class Consumer(object):
+    # TODO: Right regex here?
     url_regex = re.compile(r'(^|\s+)(https?://.*?)(\s+|$)', re.DOTALL | re.I)
 
     def __init__(self, content, maxwidth=None, maxheight=None):
@@ -39,7 +40,7 @@ class Consumer(object):
             provider.set_max_dimensions(self.maxwidth, self.maxheight)
             resource = provider.get_resource(url)
 
-            content = content.replace(resource.url, resource.render())
+            content = content.replace(url, resource.render())
 
         return content
 
@@ -50,7 +51,7 @@ class HTMLConsumer(Consumer):
     automatically consume URLs that are hyperlinked
     """
     def _is_hyperlinked(self, node):
-        # TODO: This might need work if we want to go all the way up
+        # TODO: This might need work if we want to go all the way up the tree
         return node.parent and node.parent.name == 'a'
 
     def devour(self, content=None):
