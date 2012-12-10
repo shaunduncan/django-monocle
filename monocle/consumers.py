@@ -65,9 +65,10 @@ class HTMLConsumer(Consumer):
 
         for element in soup.findAll(text=self.url_regex):
             # Don't handle linked URLs
-            if self._is_hyperlinked(element)
+            if self._is_hyperlinked(element):
+                continue
 
-            url.replaceWith(super(HTMLConsumer, self).devour(str(element)))
+            element.replaceWith(super(HTMLConsumer, self).devour(str(element)))
 
         return str(soup)
 
