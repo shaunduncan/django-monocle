@@ -3,7 +3,7 @@ from monocle.models import ThirdPartyProvider, URLScheme
 
 
 class ThirdPartyProviderAdmin(admin.ModelAdmin):
-    list_display = ('name', 'api_endpoint', 'resource-type', 'is_active', 'expose')
+    list_display = ('name', 'api_endpoint', 'resource_type', 'is_active', 'expose')
     list_filter = ('is_active', 'expose')
 
 
