@@ -38,9 +38,13 @@ class ThirdPartyProvider(models.Model, Provider):
         if self.api_endpoint.lower().startswith('https'):
             raise ValidationError('API Endpoint cannot be a HTTPS endpoint')
 
+    def __unicode__(self):
+        return self.name or self.api_endpoint
+
 
 class URLScheme(models.Model):
-    scheme = models.CharField(max_length=255, help_text="Wildcard URL pattern: http://*.flickr.com/photos/*")
+    scheme = models.CharField(max_length=255, unique=True,
+                              help_text="Wildcard URL pattern: http://*.flickr.com/photos/*")
     provider = models.ForeignKey('ThirdPartyProvider', related_name='_schemes')
 
     def clean(self):
@@ -67,6 +71,9 @@ class URLScheme(models.Model):
 
         if not self.provider:
             raise ValidationError('This URL Scheme must belong to a provider')
+
+    def __unicode__(self):
+        return self.scheme
 
 
 def _update_provider(sender, instance, created, **kwargs):
