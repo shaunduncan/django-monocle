@@ -18,7 +18,7 @@ class InvalidProvider(Exception):
 
 class Provider(object):
     api_endpoint = None
-    url_scheme = None
+    url_schemes = None
     resource_type = None
     expose = False  # Expose this provider externally
     _params = {}
@@ -60,9 +60,13 @@ class Provider(object):
     def maxheight(self):
         return self._params.get('maxheight', 0)
 
+    def _schemes_to_regex_str(self):
+        regex = '(%s)' % '|'.join(map(str, self.url_schemes))
+        return regex.replace('*', '.*?')
+
     def match(self, url):
-        if self.url_scheme:
-            return re.match(self.url_scheme.replace('*', '.*?'), url, re.I)
+        if self.url_schemes and len(self.url_schemes):
+            return re.match(self._schemes_to_regex_str(), url, re.I)
         else:
             return False
 
@@ -88,6 +92,20 @@ class InternalProvider(Provider):
 
         template = get_template(self.html_template)
         return template.render(Context(data))
+
+    def width(self):
+        """
+        Returns the 'default' width of this provider which is the maximum
+        configured dimension constrained by maxwidth/maxheight
+        """
+        return self.nearest_allowed_size(self.maxwidth, self.maxheight)[0]
+
+    def height(self):
+        """
+        Returns the 'default' height of this provider which is the maximum
+        configured dimension constrained by maxwidth/maxheight
+        """
+        return self.nearest_allowed_size(self.maxwidth, self.maxheight)[1]
 
     def _data_attribute(self, name, required=False):
         """

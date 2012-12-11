@@ -16,8 +16,7 @@ class ThirdPartyProvider(models.Model, Provider):
     """
     Database-backed third-party provider configuration
     """
-    url_scheme = models.CharField(max_length=255,
-                                  help_text="Wildcard URL pattern: http://*.flickr.com/photos/*")
+    name = models.CharField(max_length=50, blank=True)
     api_endpoint = models.URLField(verify_exists=False)
     resource_type = models.CharField(choices=RESOURCE_CHOICES, max_length=10)
     is_active = models.BooleanField(default=True)
@@ -26,6 +25,23 @@ class ThirdPartyProvider(models.Model, Provider):
 
     class Meta:
         ordering = ('api_endpoint', 'resource_type')
+
+    @property
+    def url_schemes(self):
+        return list(self._schemes.all())
+
+    def clean(self):
+        """Ensures the API endpoint is valid"""
+        if not self.api_endpoint:
+            raise ValidationError('API Endpoint is required')
+
+        if self.api_endpoint.lower().startswith('https'):
+            raise ValidationError('API Endpoint cannot be a HTTPS endpoint')
+
+
+class URLScheme(models.Model):
+    scheme = models.CharField(max_length=255, help_text="Wildcard URL pattern: http://*.flickr.com/photos/*")
+    provider = models.ForeignKey('ThirdPartyProvider', related_name='_schemes')
 
     def clean(self):
         """
@@ -38,10 +54,10 @@ class ThirdPartyProvider(models.Model, Provider):
         NOT OK: http://*.com/photos/*
         NOT OK: *://www.flickr.com/photos/*
         """
-        if not self.url_scheme:
+        if not self.scheme:
             raise ValidationError('URL Scheme is required')
 
-        parts = urlparse(self.url_scheme.lower())
+        parts = urlparse(self.scheme.lower())
 
         if not parts.scheme or parts.scheme == 'https':
             raise ValidationError('URL Scheme cannot be a wildcard and must not be HTTPS')
@@ -49,12 +65,8 @@ class ThirdPartyProvider(models.Model, Provider):
         if re.match(r'\*\.?(\w{3}|(\w{2}\.)?\w{2})$', parts.netloc):
             raise ValidationError('URL Scheme is too agressive')
 
-        # VALIDATE API ENDPOINT
-        if not self.api_endpoint:
-            raise ValidationError('API Endpoint is required')
-
-        if self.api_endpoint.lower().startswith('https'):
-            raise ValidationError('API Endpoint cannot be a HTTPS endpoint')
+        if not self.provider:
+            raise ValidationError('This URL Scheme must belong to a provider')
 
 
 def _update_provider(sender, instance, created, **kwargs):

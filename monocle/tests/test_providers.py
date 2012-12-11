@@ -4,7 +4,7 @@ from urllib import urlencode
 
 from django.conf import settings
 
-from monocle.models import ThirdPartyProvider
+from monocle.models import ThirdPartyProvider, URLScheme
 from monocle.providers import Provider, InternalProvider, ProviderRegistry
 from monocle.resources import Resource
 
@@ -66,11 +66,11 @@ class ProviderTestCase(TestCase):
         self.assertFalse(mock_task.called)
 
     def test_match_provides(self):
-        self.provider.url_scheme = 'http://*.foo.com/bar'
+        self.provider.url_schemes = ['http://*.foo.com/bar']
         self.assertTrue(self.provider.match('http://sub.blah.foo.com/bar'))
 
     def test_match_does_not_provide(self):
-        self.provider.url_scheme = 'http://*.foo.com/bar'
+        self.provider.url_schemes = ['http://*.foo.com/bar']
         self.assertFalse(self.provider.match('http://youtube.com/video'))
 
 
@@ -208,9 +208,10 @@ class ProviderRegistryTestCase(TestCase):
         self.stored.delete()
 
     def make_provider(self):
-        return ThirdPartyProvider.objects.create(url_scheme='http://*.youtube.com',
-                                                 api_endpoint='http://youtube.com/oembed',
-                                                 resource_type='video')
+        provider = ThirdPartyProvider.objects.create(api_endpoint='http://youtube.com/oembed',
+                                                     resource_type='video')
+        URLScheme.objects.create(scheme='http://*.youtube.com', provider=provider)
+        return provider
 
     def test_provider_type_internal(self):
         self.assertEqual('internal', self.registry._provider_type(self.internal))
@@ -223,8 +224,7 @@ class ProviderRegistryTestCase(TestCase):
         self.assertIn(self.stored, self.registry)
 
     def test_update_adds_missing_from_signal(self):
-        provider = ThirdPartyProvider(url_scheme='http://*.foobar.com',
-                                      api_endpoint='http://example.com',
+        provider = ThirdPartyProvider(api_endpoint='http://example.com',
                                       resource_type='photo')
         self.assertNotIn(provider, self.registry)
 
@@ -261,8 +261,7 @@ class ProviderRegistryTestCase(TestCase):
         self.assertIn(self.internal, self.registry)
 
     def test_match_prefers_internal(self):
-        # Internal should be mirror copy
-        self.internal.url_scheme = self.stored.url_scheme
+        self.internal.url_schemes = ['http://*.youtube.com']
 
         self.registry.clear()
         self.registry.ensure()
