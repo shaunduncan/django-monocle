@@ -1,6 +1,11 @@
+import logging
+
 from django.core.cache import cache as _cache
 
 from monocle.settings import settings
+
+
+logger = logging.getLogger(__name__)
 
 
 class Cache(object):
@@ -20,6 +25,7 @@ class Cache(object):
         key = self.make_key(key)
 
         if _cache.add(key, primer, timeout=settings.CACHE_AGE):
+            logger.debug('Primed cache key %s with %s for age %s' % (key, primer, settings.CACHE_AGE))
             return primer, True
         else:
             return _cache.get(key), False

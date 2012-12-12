@@ -1,6 +1,11 @@
+import logging
+
 from django.db.models import fields
 
 from monocle.consumers import devour
+
+
+logger = logging.getLogger(__name__)
 
 
 class OEmbedCharField(fields.CharField):
@@ -23,8 +28,8 @@ class OEmbedCharField(fields.CharField):
     description = 'CharField that transparently fetches OEmbed content on save'
 
     def __init__(self, *args, **kwargs):
-        self.contains_html = kwargs.get('contains_html', False)
-        self.prefetch_sizes = kwargs.get('prefetch_sizes', [])
+        self.contains_html = kwargs.pop('contains_html', False)
+        self.prefetch_sizes = kwargs.pop('prefetch_sizes', [])
         super(OEmbedCharField, self).__init__(*args, **kwargs)
 
     def pre_save(self, model, add):
@@ -32,8 +37,10 @@ class OEmbedCharField(fields.CharField):
 
         # Send it off
         if not self.prefetch_sizes:
+            logger.debug('Prefetching OEmbedCharField content with provider default size')
             devour(content, html=self.contains_html)
         else:
+            logger.debug('Prefetching OEmbedCharField content with sizes: %s' % self.prefetch_sizes)
             for size in self.prefetch_sizes:
                 devour(content, html=self.contains_html, maxwidth=size[0], maxheight=size[1])
 
@@ -60,8 +67,8 @@ class OEmbedTextField(fields.TextField):
     description = 'TextField that transparently fetches OEmbed content on save'
 
     def __init__(self, *args, **kwargs):
-        self.contains_html = kwargs.get('contains_html', False)
-        self.prefetch_sizes = kwargs.get('prefetch_sizes', [])
+        self.contains_html = kwargs.pop('contains_html', True)
+        self.prefetch_sizes = kwargs.pop('prefetch_sizes', [])
         super(OEmbedTextField, self).__init__(*args, **kwargs)
 
     def pre_save(self, model, add):
@@ -69,9 +76,11 @@ class OEmbedTextField(fields.TextField):
 
         # Send it off
         if not self.prefetch_sizes:
+            logger.debug('Prefetching OEmbedTextField content with provider default size')
             devour(content, html=self.contains_html)
         else:
+            logger.debug('Prefetching OEmbedTextField content with sizes: %s' % self.prefetch_sizes)
             for size in self.prefetch_sizes:
                 devour(content, html=self.contains_html, maxwidth=size[0], maxheight=size[1])
 
-        return super(OEmbedCharField, self).pre_save(model, add)
+        return super(OEmbedTextField, self).pre_save(model, add)

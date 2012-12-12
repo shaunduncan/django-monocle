@@ -1,3 +1,4 @@
+import logging
 import re
 import warnings
 
@@ -10,6 +11,9 @@ from monocle.cache import cache
 from monocle.resources import Resource
 from monocle.settings import settings
 from monocle.tasks import request_external_oembed
+
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidProvider(Exception):
@@ -25,18 +29,24 @@ class Provider(object):
 
     def set_max_dimensions(self, width=None, height=None):
         if width:
-            self._params['maxwidth']
+            self._params['maxwidth'] = width
 
         if height:
-            self._params['maxheight']
+            self._params['maxheight'] = height
 
     def get_resource(self, url, **kwargs):
         """Obtain the OEmbed resource JSON"""
-        self._params = kwargs
+        if not self._params:
+            self._params = {}
+
+        if kwargs:
+            self._params.update(kwargs)
+
         self._params['url'] = url
         self._params['format'] = 'json'
 
         request_url = self.get_request_url()
+        logger.info('Obtaining OEmbed resource at %s' % request_url)
 
         cached, primed = cache.get_or_prime(request_url, primer=Resource(self._params['url']))
 
@@ -45,7 +55,8 @@ class Provider(object):
             if cached.is_stale:
                 cache.set(request_url, cached.fresh())
 
-            request_external_oembed.apply_async(request_url)
+            request_external_oembed.apply_async((request_url,))
+            logger.info('Scheduled external request for OEmbed resource %s' % url)
 
         return cached
 
@@ -61,13 +72,19 @@ class Provider(object):
         return self._params.get('maxheight', 0)
 
     def _schemes_to_regex_str(self):
+        """
+        Replace wildcards with non-greedy dot-all and escape true '.'
+        """
         regex = '(%s)' % '|'.join(map(str, self.url_schemes))
-        return regex.replace('*', '.*?')
+        regex = regex.replace('.', '\\.').replace('*', '.*?')
+
+        return regex
 
     def match(self, url):
         if self.url_schemes and len(self.url_schemes):
             return re.match(self._schemes_to_regex_str(), url, re.I)
         else:
+            logger.warning('No URL schemes defined for provider %s' % self.__class__.__name__)
             return False
 
 
@@ -146,21 +163,27 @@ class InternalProvider(Provider):
         The return value will either be the largest allowed size below the maximum
         or will be the maximum if no allowed size can be found
         """
+        logger.debug('Resizing (%s, %s) to nearest allowed size' % (width, height))
         maxdim = (width, height)
 
-        if self.maxwidth:
-            maxdim = (min(width, self.maxwidth), maxdim[1])
+        if self.maxwidth and width > self.maxwidth:
+            logger.debug('Width exceeds maxwidth %s' % self.maxwidth)
+            maxdim = (self.maxwidth, maxdim[1])
 
-        if self.maxheight:
-            maxdim = (maxdim[0], min(height, self.maxheight))
+        if self.maxheight and height > self.maxheight:
+            logger.debug('Height exceeds maxheight %s' % self.maxheight)
+            maxdim = (maxdim[0], self.maxheight)
 
         dims = getattr(self, 'DIMENSIONS', settings.RESOURCE_DEFAULT_DIMENSIONS)
         smaller = lambda x, y: x[0] <= y[0] and x[1] <= y[1]
         valid_sizes = [d for d in dims if smaller(d, maxdim)]
 
         if valid_sizes:
-            return sorted(valid_sizes, reverse=True)[0]
+            valid_sizes.sort(reverse=True)
+            logger.debug('Nearest allowed size for %s: %s' % (maxdim, valid_sizes))
+            return valid_sizes[0]
         else:
+            logger.debug('No appropriate size found. Returning default %s' % (maxdim,))
             return maxdim
 
     def _check_dimension(self, width, height, message=None):
@@ -204,10 +227,14 @@ class InternalProvider(Provider):
         self._params['format'] = 'json'
 
         if settings.CACHE_INTERNAL_PROVIDERS:
+            # TODO: This needs to also include kwargs
+            # or api_endpoint is http://localhost and use request_url
             cache_key = 'INTERNAL:%s' % url
+            logger.debug('Checking InternalProvider cache for key %s' % cache_key)
             cached, primed = cache.get_or_prime(cache_key, primer=Resource(url))
 
             if primed or cached.is_stale:
+                logger.debug('Rebuilding new or stale internal provider resource at %s' % url)
                 # This is just a safeguard in case the rebuild takes a little time
                 if cached.is_stale:
                     cache.set(cache_key, cached.fresh())
@@ -233,7 +260,10 @@ class ProviderRegistry(object):
         return provider in self._providers[self._provider_type(provider)]
 
     def ensure(self):
-        if self._providers:
+        # TODO: This only ensures external providers. What if there are none?
+        # Will that be bad to keep hitting the DB?
+        if self._providers['external']:
+            logger.debug('Extnernal provider cache is already populated')
             return
 
         # BOO circular import prevention
@@ -268,15 +298,18 @@ class ProviderRegistry(object):
         except ValueError:
             # Provider not in the registry
             self._providers[type].append(provider)
+            logger.debug('Adding provider %s to %s registry' % (provider, type))
         else:
             self._providers[type][idx] = provider
+            logger.debug('Updating provider %s to %s registry' % (provider, type))
 
     def unregister(self, provider):
         """
         Removes a provider from the registry.
         """
-        self.ensure()
         type = self._provider_type(provider)
+
+        logger.debug('Removing provider %s to %s registry' % (provider, type))
 
         try:
             self._providers[type].remove(provider)
@@ -290,6 +323,8 @@ class ProviderRegistry(object):
         prefers matching internal providers over external providers
         """
         self.ensure()
+
+        logger.debug('Locating provider match for %s' % url)
 
         return self.match_type(url, 'internal') or self.match_type(url, 'external')
 
@@ -316,6 +351,7 @@ class ProviderRegistry(object):
 
         type = self._provider_type(provider)
         self._providers[type].append(provider)
+        logger.debug('Adding provider %s to %s registry' % (provider, type))
 
 
 registry = ProviderRegistry()

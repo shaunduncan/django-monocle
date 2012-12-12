@@ -1,9 +1,13 @@
+import logging
 import re
 
 from BeautifulSoup import BeautifulSoup
 
 from monocle.providers import registry, InternalProvider
 from monocle.settings import settings
+
+
+logger = logging.getLogger(__name__)
 
 
 class Consumer(object):
@@ -25,20 +29,24 @@ class Consumer(object):
         Consumes all OEmbed content URLs in the content. Returns a new
         version of the content with URLs replaced with rich content
         """
-        content = self.content if content else content
+        content = self.content if not content else content
 
         for url in self.get_urls():
             provider = registry.match(url)
 
             if not provider:
+                logger.debug('No provider match for %s' % url)
                 continue
 
             # Don't process internal if we don't cache - it's wasted overhead
             if isinstance(provider, InternalProvider) and not settings.CACHE_INTERNAL_PROVIDERS:
+                logger.debug('Provider for %s is InternalProvder and not cached. Skipping')
                 continue
 
             provider.set_max_dimensions(self.maxwidth, self.maxheight)
             resource = provider.get_resource(url)
+
+            logger.debug('Embedding %s for url %s' % (resource, url))
 
             content = content.replace(url, resource.render())
 
@@ -61,22 +69,25 @@ class HTMLConsumer(Consumer):
         that aren't hyperlinked and send the content/parent they belong to through the
         normal text consumer
         """
-        soup = BeautifulSoup(self.content)
+        content = self.content if not content else content
+        soup = BeautifulSoup(content)
 
         for element in soup.findAll(text=self.url_regex):
             # Don't handle linked URLs
             if self._is_hyperlinked(element):
+                logger.debug('Skipping hyperlinked content: %s' % element)
                 continue
 
-            element.replaceWith(super(HTMLConsumer, self).devour(str(element)))
+            replacement = super(HTMLConsumer, self).devour(str(element))
+            element.replaceWith(BeautifulSoup(replacement))
 
         return str(soup)
 
 
-def devour(self, content, html=False, maxwidth=None, maxheight=None):
+def devour(content, html=False, maxwidth=None, maxheight=None):
     c = HTMLConsumer(content) if html else Consumer(content)
 
     c.maxwidth = maxwidth
     c.maxheight = maxheight
 
-    return c.devour()
+    return c.devour(content)

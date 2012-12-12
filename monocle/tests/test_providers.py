@@ -252,7 +252,9 @@ class ProviderRegistryTestCase(TestCase):
         self.registry.ensure()
         self.assertIn(self.stored, self.registry)
         self.registry.unregister(self.stored)
-        self.assertNotIn(self.stored, self.registry)
+
+        self.assertNotIn(self.stored, self.registry._providers['internal'])
+        self.assertNotIn(self.stored, self.registry._providers['external'])
 
     def test_register(self):
         self.registry.clear()

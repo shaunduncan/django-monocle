@@ -5,6 +5,7 @@ from datetime import datetime
 
 from django.template import Context
 from django.template.loader import get_template
+from django.utils.safestring import mark_safe
 
 from monocle.settings import settings
 
@@ -44,7 +45,7 @@ class Resource(object):
             template_name = os.path.join('monocle', '%s.html' % self._data['type'])
 
         template = get_template(template_name)
-        return template.render(Context({'url': self.url, 'resource': self}))
+        return mark_safe(template.render(Context({'url': self.url, 'resource': self})))
 
     @property
     def is_valid(self):

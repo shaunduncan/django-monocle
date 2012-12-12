@@ -38,10 +38,8 @@ class OEmbedNode(template.Node):
         self.html = html
 
     def render(self, context):
-        return devour(self.nodelist.render(context),
-                      html=self.html,
-                      maxwidth=self.width,
-                      maxheight=self.height)
+        content = self.nodelist.render(context)
+        return mark_safe(devour(content, html=self.html, maxwidth=self.width, maxheight=self.height))
 
 
 def oembed_tag(parser, token):

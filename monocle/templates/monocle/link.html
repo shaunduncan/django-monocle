@@ -1,6 +1,1 @@
-{% spaceless %}
-    {% autoescape off %}
-        {# Use resource.url here rather than response 'url' #}
-        <a href="{{ url }}" title="{{ resource.title }}" rel="nofollow" target="_blank">{{ url }}</a>
-    {% endautoescape %}
-{% endspaceless %}
+{% autoescape off %}<a href="{{ url }}" title="{{ resource.title }}" rel="nofollow" target="_blank">{{ url }}</a>{% endautoescape %}
