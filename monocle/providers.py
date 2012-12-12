@@ -25,30 +25,17 @@ class Provider(object):
     url_schemes = None
     resource_type = None
     expose = False  # Expose this provider externally
-    _params = {}
-
-    def set_max_dimensions(self, width=None, height=None):
-        if width:
-            self._params['maxwidth'] = width
-
-        if height:
-            self._params['maxheight'] = height
 
     def get_resource(self, url, **kwargs):
         """Obtain the OEmbed resource JSON"""
-        if not self._params:
-            self._params = {}
+        params = kwargs
+        params['url'] = url
+        params['format'] = 'json'
 
-        if kwargs:
-            self._params.update(kwargs)
-
-        self._params['url'] = url
-        self._params['format'] = 'json'
-
-        request_url = self.get_request_url()
+        request_url = self.get_request_url(params)
         logger.info('Obtaining OEmbed resource at %s' % request_url)
 
-        cached, primed = cache.get_or_prime(request_url, primer=Resource(self._params['url']))
+        cached, primed = cache.get_or_prime(request_url, primer=Resource(params['url']))
 
         if primed or cached.is_stale:
             # Prevent many tasks being issued
@@ -60,16 +47,15 @@ class Provider(object):
 
         return cached
 
-    def get_request_url(self):
-        return '%s?%s' % (self.api_endpoint, urlencode(self._params))
+    def get_request_url(self, params):
+        zeros = (0, '0', None)
 
-    @property
-    def maxwidth(self):
-        return self._params.get('maxwidth', 0)
+        # Remove maxwidth/maxheight of "0"
+        for param in ('maxwidth', 'maxheight'):
+            if param in params and params[param] in zeros:
+                del params[param]
 
-    @property
-    def maxheight(self):
-        return self._params.get('maxheight', 0)
+        return '%s?%s' % (self.api_endpoint, urlencode(params))
 
     def _schemes_to_regex_str(self):
         """
@@ -110,20 +96,6 @@ class InternalProvider(Provider):
         template = get_template(self.html_template)
         return template.render(Context(data))
 
-    def width(self):
-        """
-        Returns the 'default' width of this provider which is the maximum
-        configured dimension constrained by maxwidth/maxheight
-        """
-        return self.nearest_allowed_size(self.maxwidth, self.maxheight)[0]
-
-    def height(self):
-        """
-        Returns the 'default' height of this provider which is the maximum
-        configured dimension constrained by maxwidth/maxheight
-        """
-        return self.nearest_allowed_size(self.maxwidth, self.maxheight)[1]
-
     def _data_attribute(self, name, required=False):
         """
         Gets an attribute as should be defined by an implementer.
@@ -156,7 +128,7 @@ class InternalProvider(Provider):
         else:
             return attr
 
-    def nearest_allowed_size(self, width, height):
+    def nearest_allowed_size(self, width, height, maxwidth=None, maxheight=None):
         """
         Get the nearest size dimension below a maximum dimension. The dimension
         threshold is the minimum of the specified size and requested maximum size.
@@ -166,13 +138,13 @@ class InternalProvider(Provider):
         logger.debug('Resizing (%s, %s) to nearest allowed size' % (width, height))
         maxdim = (width, height)
 
-        if self.maxwidth and width > self.maxwidth:
-            logger.debug('Width exceeds maxwidth %s' % self.maxwidth)
-            maxdim = (self.maxwidth, maxdim[1])
+        if maxwidth and width > maxwidth:
+            logger.debug('Width exceeds maxwidth %s' % maxwidth)
+            maxdim = (maxwidth, maxdim[1])
 
-        if self.maxheight and height > self.maxheight:
-            logger.debug('Height exceeds maxheight %s' % self.maxheight)
-            maxdim = (maxdim[0], self.maxheight)
+        if maxheight and height > maxheight:
+            logger.debug('Height exceeds maxheight %s' % maxheight)
+            maxdim = (maxdim[0], maxheight)
 
         dims = getattr(self, 'DIMENSIONS', settings.RESOURCE_DEFAULT_DIMENSIONS)
         smaller = lambda x, y: x[0] <= y[0] and x[1] <= y[1]
@@ -186,17 +158,20 @@ class InternalProvider(Provider):
             logger.debug('No appropriate size found. Returning default %s' % (maxdim,))
             return maxdim
 
-    def _check_dimension(self, width, height, message=None):
+    def _check_dimension(self, width, height, maxwidth=None, maxheight=None, message=None):
         """
         Raises a warning with optional message if width and height exceeds the maximum
         allowable size as defined by this provider
         """
-        new_width, new_height = self.nearest_allowed_size(width, height)
+        new_width, new_height = self.nearest_allowed_size(width, height,
+                                                          maxwidth=maxwidth,
+                                                          maxheight=maxheight)
         if new_width < width or new_height < height:
             warnings.warn(message or 'Resource size exceeds allowable dimensions')
 
-    def _build_resource(self, url):
+    def _build_resource(self, **kwargs):
         # These are always required
+        url = kwargs.get('url')
         data = {
             'type': self.resource_type,
             'version': '1.0'
@@ -213,18 +188,22 @@ class InternalProvider(Provider):
         # Raise a warning if width/height exceed maximum requested and scale
         # TODO: I'm still not convinced this is the right way to handle this
         if 'width' in data and 'height' in data:
-            self._check_dimension(data['width'], data['height'])
+            self._check_dimension(data['width'], data['height'],
+                                  maxwidth=kwargs.get('maxwidth'),
+                                  maxheight=kwargs.get('maxheight'))
 
         if 'thumbnail_width' in data and 'thumbnail_height' in data:
             self._check_dimension(data['thumbnail_width'], data['thumbnail_height'],
-                                  'Thumbnail size exceeds allowable dimensions')
+                                  maxwidth=kwargs.get('maxwidth'),
+                                  maxheight=kwargs.get('maxheight'),
+                                  message='Thumbnail size exceeds allowable dimensions')
 
         return Resource(url, data)
 
     def get_resource(self, url, **kwargs):
-        self._params = kwargs
-        self._params['url'] = url
-        self._params['format'] = 'json'
+        params = kwargs
+        params['url'] = url
+        params['format'] = 'json'
 
         if settings.CACHE_INTERNAL_PROVIDERS:
             # TODO: This needs to also include kwargs
@@ -239,13 +218,13 @@ class InternalProvider(Provider):
                 if cached.is_stale:
                     cache.set(cache_key, cached.fresh())
 
-                cached = self._build_resource(url)
+                cached = self._build_resource(**params)
                 cache.set(cache_key, cached)
 
             return cached
 
         # No caching, build directly
-        return self._build_resource(url)
+        return self._build_resource(**params)
 
 
 class ProviderRegistry(object):

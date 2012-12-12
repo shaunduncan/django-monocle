@@ -17,13 +17,14 @@ def _args_to_dim(args):
 def _value_to_dim(value):
     """Converts an arg string to width,height"""
     if value:
+        parts = value.lower().split('x')
+
+        if len(parts) != 2:
+            raise template.TemplateSyntaxError('OEmbed tag argument must be integers [width]x[height]')
+
         try:
-            parts = value.lower().split('x')
-
-            if len(parts) != 2:
-                raise template.TemplateSyntaxError('OEmbed tag argument must be integers [width]x[height]')
-
-            return map(int, parts)
+            # Convert all parts to ints, replacing false-y ones with 0
+            return map(int, map(lambda x: x or 0, parts))
         except ValueError:
             raise template.TemplateSyntaxError('OEmbed tag argument must be integers [width]x[height]')
     return None, None
@@ -83,6 +84,7 @@ def oembed_text_filter(input, size=None):
     Filter that parses content as plain text for OEmbed URLs
     """
     width, height = _value_to_dim(size)
+
     return mark_safe(devour(input, html=False, maxwidth=width, maxheight=height))
 
 

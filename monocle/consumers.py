@@ -43,8 +43,7 @@ class Consumer(object):
                 logger.debug('Provider for %s is InternalProvder and not cached. Skipping')
                 continue
 
-            provider.set_max_dimensions(self.maxwidth, self.maxheight)
-            resource = provider.get_resource(url)
+            resource = provider.get_resource(url, maxwidth=self.maxwidth, maxheight=self.maxheight)
 
             logger.debug('Embedding %s for url %s' % (resource, url))
 

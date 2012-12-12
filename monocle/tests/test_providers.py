@@ -18,12 +18,26 @@ class ProviderTestCase(TestCase):
         self.provider.api_endpoint = 'http://foo.com/oembed'
 
     def test_get_request_url(self):
-        self.provider._params = {'url': self.resource_url, 'format': 'json'}
-        request_url = self.provider.get_request_url()
+        params = {'url': self.resource_url, 'format': 'json'}
+        request_url = self.provider.get_request_url(params)
 
         self.assertIn(self.provider.api_endpoint, request_url)
         self.assertIn(urlencode({'url': self.resource_url}), request_url)
         self.assertIn('format=json', request_url)
+
+    def test_get_request_url_filters_zeros(self):
+        params = {
+            'url': self.resource_url,
+            'format': 'json'
+        }
+
+        params.update({'maxwidth': '0', 'maxheight': 100})
+        request_url = self.provider.get_request_url(params)
+        self.assertNotIn('maxwidth', request_url)
+
+        params.update({'maxwidth': 100, 'maxheight': None})
+        request_url = self.provider.get_request_url(params)
+        self.assertNotIn('maxheight', request_url)
 
     @patch('monocle.providers.request_external_oembed')
     @patch('monocle.providers.cache')
@@ -109,7 +123,7 @@ class InternalProviderTestCase(TestCase):
         self.provider.foo = 'foo'
         self.provider.author_name = 'John Galt'
 
-        resource = self.provider._build_resource(self.resource_url)
+        resource = self.provider._build_resource(**{'url': self.resource_url})
 
         # Base things
         self.assertEqual('1.0', resource['version'])
@@ -132,7 +146,7 @@ class InternalProviderTestCase(TestCase):
         self.provider.height = 100
         self.provider.author_name = 'John Galt'
 
-        resource = self.provider._build_resource(self.resource_url)
+        resource = self.provider._build_resource(**{'url': self.resource_url})
 
         # Base things
         self.assertEqual('1.0', resource['version'])
@@ -183,18 +197,18 @@ class InternalProviderTestCase(TestCase):
         self.assertEqual((25, 25), self.provider.nearest_allowed_size(25, 25))
 
     def test_nearest_allowed_size_returns_requested_max(self):
-        self.provider._params['maxwidth'] = 50
-        self.provider._params['maxheight'] = 50
         self.provider.DIMENSIONS = [(150, 150), (200, 200)]
 
-        self.assertEqual((50, 50), self.provider.nearest_allowed_size(100, 100))
+        nearest = self.provider.nearest_allowed_size(100, 100, maxwidth=50, maxheight=50)
+
+        self.assertEqual((50, 50), nearest)
 
     def test_nearest_allowed_size_gets_nearest_size(self):
-        self.provider._params['maxwidth'] = 500
-        self.provider._params['maxheight'] = 500
         self.provider.DIMENSIONS = [(50, 50), (100, 100), (200, 200)]
 
-        self.assertEqual((100, 100), self.provider.nearest_allowed_size(150, 150))
+        nearest = self.provider.nearest_allowed_size(100, 100, maxwidth=500, maxheight=500)
+
+        self.assertEqual((100, 100), nearest)
 
 
 class ProviderRegistryTestCase(TestCase):

@@ -35,14 +35,21 @@ class OEmbedCharField(fields.CharField):
     def pre_save(self, model, add):
         content = getattr(model, self.attname)
 
-        # Send it off
-        if not self.prefetch_sizes:
-            logger.debug('Prefetching OEmbedCharField content with provider default size')
-            devour(content, html=self.contains_html)
-        else:
+        # Always obtain default size
+        logger.debug('Prefetching OEmbedCharField content with provider default size')
+        devour(content, html=self.contains_html)
+        if self.prefetch_sizes:
             logger.debug('Prefetching OEmbedCharField content with sizes: %s' % self.prefetch_sizes)
             for size in self.prefetch_sizes:
-                devour(content, html=self.contains_html, maxwidth=size[0], maxheight=size[1])
+                # Explicit size prefetch
+                if isinstance(size, tuple):
+                    devour(content, html=self.contains_html, maxwidth=size[0], maxheight=size[1])
+
+                # All combination prefetch (size, None), (None, size), (size, size)
+                elif isinstance(size, int):
+                    devour(content, html=self.contains_html, maxwidth=size)
+                    devour(content, html=self.contains_html, maxheight=size)
+                    devour(content, html=self.contains_html, maxwidth=size, maxheight=size)
 
         return super(OEmbedCharField, self).pre_save(model, add)
 
@@ -74,13 +81,20 @@ class OEmbedTextField(fields.TextField):
     def pre_save(self, model, add):
         content = getattr(model, self.attname)
 
-        # Send it off
-        if not self.prefetch_sizes:
-            logger.debug('Prefetching OEmbedTextField content with provider default size')
-            devour(content, html=self.contains_html)
-        else:
-            logger.debug('Prefetching OEmbedTextField content with sizes: %s' % self.prefetch_sizes)
+        # Always obtain default size
+        logger.debug('Prefetching OEmbedCharField content with provider default size')
+        devour(content, html=self.contains_html)
+        if self.prefetch_sizes:
+            logger.debug('Prefetching OEmbedCharField content with sizes: %s' % self.prefetch_sizes)
             for size in self.prefetch_sizes:
-                devour(content, html=self.contains_html, maxwidth=size[0], maxheight=size[1])
+                # Explicit size prefetch
+                if isinstance(size, tuple):
+                    devour(content, html=self.contains_html, maxwidth=size[0], maxheight=size[1])
+
+                # All combination prefetch (size, None), (None, size), (size, size)
+                elif isinstance(size, int):
+                    devour(content, html=self.contains_html, maxwidth=size)
+                    devour(content, html=self.contains_html, maxheight=size)
+                    devour(content, html=self.contains_html, maxwidth=size, maxheight=size)
 
         return super(OEmbedTextField, self).pre_save(model, add)
