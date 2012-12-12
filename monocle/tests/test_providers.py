@@ -142,8 +142,8 @@ class InternalProviderTestCase(TestCase):
         # Ensure that we do the right thing for types we know about
         self.provider.resource_type = 'video'
         self.provider.html = 'FooBar'
-        self.provider.width = 100
-        self.provider.height = 100
+        self.provider._params['maxwidth'] = 100
+        self.provider._params['maxheight'] = 100
         self.provider.author_name = 'John Galt'
 
         resource = self.provider._build_resource(**{'url': self.resource_url})
@@ -211,10 +211,18 @@ class InternalProviderTestCase(TestCase):
         self.assertEqual((100, 100), nearest)
 
 
+class TestInternalProvider(InternalProvider):
+    url_schemes = ['http://test.biz/*']
+
+    @classmethod
+    def get_object(cls, url):
+        return cls()
+
+
 class ProviderRegistryTestCase(TestCase):
+
     def setUp(self):
         self.external = Provider()
-        self.internal = InternalProvider()
         self.registry = ProviderRegistry()
         self.stored = self.make_provider()
 
@@ -228,7 +236,7 @@ class ProviderRegistryTestCase(TestCase):
         return provider
 
     def test_provider_type_internal(self):
-        self.assertEqual('internal', self.registry._provider_type(self.internal))
+        self.assertEqual('internal', self.registry._provider_type(TestInternalProvider))
 
     def test_provider_type_external(self):
         self.assertEqual('external', self.registry._provider_type(self.external))
@@ -249,9 +257,9 @@ class ProviderRegistryTestCase(TestCase):
 
     def test_update_adds_missing_internal(self):
         self.registry.clear()
-        self.assertNotIn(self.internal, self.registry)
-        self.registry.update(self.internal)
-        self.assertIn(self.internal, self.registry)
+        self.assertNotIn(TestInternalProvider, self.registry)
+        self.registry.update(TestInternalProvider)
+        self.assertIn(TestInternalProvider, self.registry)
 
     def test_update(self):
         self.registry.clear()
@@ -272,18 +280,16 @@ class ProviderRegistryTestCase(TestCase):
 
     def test_register(self):
         self.registry.clear()
-        self.assertNotIn(self.internal, self.registry)
-        self.registry.register(self.internal)
-        self.assertIn(self.internal, self.registry)
+        self.assertNotIn(TestInternalProvider, self.registry)
+        self.registry.register(TestInternalProvider)
+        self.assertIn(TestInternalProvider, self.registry)
 
     def test_match_prefers_internal(self):
-        self.internal.url_schemes = ['http://*.youtube.com']
-
         self.registry.clear()
         self.registry.ensure()
-        self.registry.register(self.internal)
+        self.registry.register(TestInternalProvider)
 
-        self.assertEqual(self.internal, self.registry.match('http://www.youtube.com'))
+        self.assertTrue(isinstance(self.registry.match('http://test.biz/foo'), TestInternalProvider))
 
     def test_match_has_no_match(self):
         self.assertIsNone(self.registry.match('FOO'))

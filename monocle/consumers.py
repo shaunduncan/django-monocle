@@ -19,10 +19,10 @@ class Consumer(object):
         self.maxwidth = maxwidth
         self.maxheight = maxheight
 
-    def get_urls(self):
+    def get_urls(self, content):
         """Find all URLs in the content"""
         # The regex returns a list of three-tuples and we only want the middle
-        return map(lambda x: x[1], self.url_regex.findall(self.content))
+        return map(lambda x: x[1], self.url_regex.findall(content))
 
     def devour(self, content=None):
         """
@@ -31,16 +31,11 @@ class Consumer(object):
         """
         content = self.content if not content else content
 
-        for url in self.get_urls():
+        for url in self.get_urls(content):
             provider = registry.match(url)
 
             if not provider:
                 logger.debug('No provider match for %s' % url)
-                continue
-
-            # Don't process internal if we don't cache - it's wasted overhead
-            if isinstance(provider, InternalProvider) and not settings.CACHE_INTERNAL_PROVIDERS:
-                logger.debug('Provider for %s is InternalProvder and not cached. Skipping')
                 continue
 
             resource = provider.get_resource(url, maxwidth=self.maxwidth, maxheight=self.maxheight)

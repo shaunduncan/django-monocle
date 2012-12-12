@@ -26,6 +26,10 @@ class Provider(object):
     resource_type = None
     expose = False  # Expose this provider externally
 
+    @property
+    def _internal(self):
+        return False
+
     def get_resource(self, url, **kwargs):
         """Obtain the OEmbed resource JSON"""
         params = kwargs
@@ -57,18 +61,19 @@ class Provider(object):
 
         return '%s?%s' % (self.api_endpoint, urlencode(params))
 
-    def _schemes_to_regex_str(self):
+    @classmethod
+    def _schemes_to_regex_str(cls, schemes):
         """
         Replace wildcards with non-greedy dot-all and escape true '.'
         """
-        regex = '(%s)' % '|'.join(map(str, self.url_schemes))
+        regex = '(%s)' % '|'.join(map(str, schemes))
         regex = regex.replace('.', '\\.').replace('*', '.*?')
 
         return regex
 
     def match(self, url):
         if self.url_schemes and len(self.url_schemes):
-            return re.match(self._schemes_to_regex_str(), url, re.I)
+            return re.match(self._schemes_to_regex_str(self.url_schemes), url, re.I)
         else:
             logger.warning('No URL schemes defined for provider %s' % self.__class__.__name__)
             return False
@@ -85,6 +90,31 @@ class InternalProvider(Provider):
 
     html_template = None
     expose = settings.EXPOSE_LOCAL_PROVIDERS
+    api_endpoint = 'http://localhost/'
+
+    # Internal providers are specific instances
+    _params = {}
+
+    @classmethod
+    def get_object(cls, url):
+        """
+        Internal providers should instance specific. Any internal provider
+        in the registry will invoke this method to get a specific instance
+        to handle OEmbed requests
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def match(cls, url):
+        if cls.url_schemes and len(cls.url_schemes):
+            return re.match(cls._schemes_to_regex_str(cls.url_schemes), url, re.I)
+        else:
+            logger.warning('No URL schemes defined for provider %s' % cls.__name__)
+            return False
+
+    @property
+    def _internal(self):
+        return True
 
     def render_html(self, data):
         """
@@ -95,6 +125,22 @@ class InternalProvider(Provider):
 
         template = get_template(self.html_template)
         return template.render(Context(data))
+
+    @property
+    def maxwidth(self):
+        return self._params.get('maxwidth')
+
+    @property
+    def maxheight(self):
+        return self._params.get('maxheight')
+
+    def width(self):
+        # TODO: Is this the right way to handle this? Expensive?
+        return self.nearest_allowed_size(self.maxwidth, self.maxheight)[0]
+
+    def height(self):
+        # TODO: Is this the right way to handle this? Expensive?
+        return self.nearest_allowed_size(self.maxwidth, self.maxheight)[1]
 
     def _data_attribute(self, name, required=False):
         """
@@ -124,7 +170,7 @@ class InternalProvider(Provider):
         if attr is None and required:
             raise NotImplementedError
         elif callable(attr):
-            return attr(self)
+            return attr()
         else:
             return attr
 
@@ -187,28 +233,27 @@ class InternalProvider(Provider):
 
         # Raise a warning if width/height exceed maximum requested and scale
         # TODO: I'm still not convinced this is the right way to handle this
-        if 'width' in data and 'height' in data:
-            self._check_dimension(data['width'], data['height'],
-                                  maxwidth=kwargs.get('maxwidth'),
-                                  maxheight=kwargs.get('maxheight'))
+        if settings.RESOURCE_CHECK_INTERNAL_SIZE:
+            if 'width' in data and 'height' in data:
+                self._check_dimension(data['width'], data['height'],
+                                      maxwidth=kwargs.get('maxwidth'),
+                                      maxheight=kwargs.get('maxheight'))
 
-        if 'thumbnail_width' in data and 'thumbnail_height' in data:
-            self._check_dimension(data['thumbnail_width'], data['thumbnail_height'],
-                                  maxwidth=kwargs.get('maxwidth'),
-                                  maxheight=kwargs.get('maxheight'),
-                                  message='Thumbnail size exceeds allowable dimensions')
+            if 'thumbnail_width' in data and 'thumbnail_height' in data:
+                self._check_dimension(data['thumbnail_width'], data['thumbnail_height'],
+                                      maxwidth=kwargs.get('maxwidth'),
+                                      maxheight=kwargs.get('maxheight'),
+                                      message='Thumbnail size exceeds allowable dimensions')
 
         return Resource(url, data)
 
     def get_resource(self, url, **kwargs):
-        params = kwargs
-        params['url'] = url
-        params['format'] = 'json'
+        self._params = kwargs
+        self._params['url'] = url
+        self._params['format'] = 'json'
 
         if settings.CACHE_INTERNAL_PROVIDERS:
-            # TODO: This needs to also include kwargs
-            # or api_endpoint is http://localhost and use request_url
-            cache_key = 'INTERNAL:%s' % url
+            cache_key = self.get_request_url(self._params)
             logger.debug('Checking InternalProvider cache for key %s' % cache_key)
             cached, primed = cache.get_or_prime(cache_key, primer=Resource(url))
 
@@ -218,13 +263,13 @@ class InternalProvider(Provider):
                 if cached.is_stale:
                     cache.set(cache_key, cached.fresh())
 
-                cached = self._build_resource(**params)
+                cached = self._build_resource(**self._params)
                 cache.set(cache_key, cached)
 
             return cached
 
         # No caching, build directly
-        return self._build_resource(**params)
+        return self._build_resource(**self._params)
 
 
 class ProviderRegistry(object):
@@ -256,10 +301,7 @@ class ProviderRegistry(object):
         """
         Resolves the provider type as internal or external
         """
-        if isinstance(provider, InternalProvider):
-            return 'internal'
-        else:
-            return 'external'
+        return 'internal' if provider._internal else 'external'
 
     def clear(self):
         """Clears the internal provider registry"""
@@ -312,10 +354,21 @@ class ProviderRegistry(object):
         Searches the internal provider registry for a matching
         provider for the url based on type
         """
+        matched = None
+
         for provider in self._providers[type]:
             if provider.match(url):
-                return provider
-        return None
+                matched = provider
+                break
+
+        # If the match is internal, obtain specific instance
+        if matched and hasattr(matched, 'get_object'):
+            # TODO: Should this try/except here?
+            matched = matched.get_object(url)
+        else:
+            logger.debug('Matched is None or does not have get_object: %s' % matched)
+
+        return matched
 
     def register(self, provider, ensure=True):
         """
@@ -326,7 +379,11 @@ class ProviderRegistry(object):
             self.ensure()
 
         if not isinstance(provider, Provider):
-            raise InvalidProvider('Object %s is not a valid Provider type' % provider)
+            try:
+                if not issubclass(provider, InternalProvider):
+                    raise InvalidProvider('Object %s is not a valid Provider type' % provider)
+            except TypeError:
+                raise InvalidProvider('Object %s is not a valid Provider type' % provider)
 
         type = self._provider_type(provider)
         self._providers[type].append(provider)

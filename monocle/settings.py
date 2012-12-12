@@ -31,6 +31,14 @@ class Settings(object):
         )
 
     @property
+    def RESOURCE_CHECK_INTERNAL_SIZE(self):
+        """
+        Checks internal provider returned data to ensure maxwidth/maxheight respected.
+        Raises a warning if they are not respected.
+        """
+        return getattr(_settings, 'MONOCLE_RESOURCE_CHECK_INTERNAL_SIZE', False)
+
+    @property
     def RESOURCE_DEFAULT_DIMENSIONS(self):
         """
         Default dimensions for internal providers if implementations do not
