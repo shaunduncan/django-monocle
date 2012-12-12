@@ -24,7 +24,7 @@ class Consumer(object):
         # The regex returns a list of three-tuples and we only want the middle
         return map(lambda x: x[1], self.url_regex.findall(content))
 
-    def devour(self, content=None):
+    def devour(self, content=None, skip_internal=False):
         """
         Consumes all OEmbed content URLs in the content. Returns a new
         version of the content with URLs replaced with rich content
@@ -36,6 +36,12 @@ class Consumer(object):
 
             if not provider:
                 logger.debug('No provider match for %s' % url)
+                continue
+
+            # Bypass internal providers if they aren't cached
+            if (skip_internal and isinstance(provider, InternalProvider) and
+                    not settings.CACHE_INTERNAL_PROVIDERS):
+                logger.debug('Skipping uncached internal provider')
                 continue
 
             resource = provider.get_resource(url, maxwidth=self.maxwidth, maxheight=self.maxheight)
@@ -56,7 +62,7 @@ class HTMLConsumer(Consumer):
         # TODO: This might need work if we want to go all the way up the tree
         return node.parent and node.parent.name == 'a'
 
-    def devour(self, content=None):
+    def devour(self, content=None, skip_internal=False):
         """
         This is a bit different than base Consumer. We don't really concern
         ourselves with communicating with providers. Instead we find all URLs
@@ -72,16 +78,44 @@ class HTMLConsumer(Consumer):
                 logger.debug('Skipping hyperlinked content: %s' % element)
                 continue
 
-            replacement = super(HTMLConsumer, self).devour(str(element))
+            replacement = super(HTMLConsumer, self).devour(str(element), skip_internal=skip_internal)
             element.replaceWith(BeautifulSoup(replacement))
 
         return str(soup)
 
 
-def devour(content, html=False, maxwidth=None, maxheight=None):
+def devour(content, html=False, maxwidth=None, maxheight=None, skip_internal=False):
     c = HTMLConsumer(content) if html else Consumer(content)
 
     c.maxwidth = maxwidth
     c.maxheight = maxheight
 
-    return c.devour(content)
+    return c.devour(content, skip_internal=skip_internal)
+
+
+def prefetch(content, html=False, sizes=None):
+    """
+    A wrapper for devour() that does specialized work for prefetching
+    OEmbed content. Specify a list of sizes to prefetch. By default,
+    no explicit size will be passed to the providers. Sizes can be a list
+    of two-tuples that are explicit sizes or integers that are converted
+    to size combinations
+    """
+    logger.debug('Prefetching OEmbed content excluding uncached internal providers')
+    devour(content, html=html, skip_internal=True)
+
+    if not sizes:
+        return
+
+    for size in sizes:
+        logger.debug('Prefetching Size %s' % (size,))
+
+        # Explicit size
+        if isinstance(size, tuple):
+            devour(content, html=html, maxwidth=size[0], maxheight=size[1], skip_internal=True)
+
+        # All size combinations - (size, None), (None, size), (size, size)
+        elif isinstance(size, int):
+            devour(content, html=html, maxwidth=size, skip_internal=True)
+            devour(content, html=html, maxheight=size, skip_internal=True)
+            devour(content, html=html, maxwidth=size, maxheight=size, skip_internal=True)

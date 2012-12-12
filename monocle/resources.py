@@ -93,7 +93,8 @@ class Resource(object):
 
     @property
     def json(self):
-        return json.dumps(self._data)
+        """Return JSON ouput minus any empty things"""
+        return json.dumps(dict([(k, v) for k, v in self._data.items() if v]))
 
     def get_ttl(self):
         """

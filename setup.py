@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 version = '0.0.1'
 
-print find_packages()
 setup(name='django-monocle',
       version=version,
       description=("Django app for embedding rich content with scalability in mind"),

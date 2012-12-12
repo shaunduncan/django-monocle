@@ -128,11 +128,11 @@ class InternalProvider(Provider):
 
     @property
     def maxwidth(self):
-        return self._params.get('maxwidth')
+        return self._params.get('maxwidth', getattr(self, 'DEFAULT_WIDTH', None))
 
     @property
     def maxheight(self):
-        return self._params.get('maxheight')
+        return self._params.get('maxheight', getattr(self, 'DEFAULT_HEIGHT', None))
 
     def width(self):
         # TODO: Is this the right way to handle this? Expensive?
@@ -280,22 +280,14 @@ class ProviderRegistry(object):
     _providers = {'internal': [], 'external': []}
 
     def __contains__(self, provider):
-        self.ensure()
         return provider in self._providers[self._provider_type(provider)]
 
     def ensure(self):
-        # TODO: This only ensures external providers. What if there are none?
-        # Will that be bad to keep hitting the DB?
-        if self._providers['external']:
-            logger.debug('Extnernal provider cache is already populated')
-            return
-
         # BOO circular import prevention
         from monocle.models import ThirdPartyProvider
 
         # Populate with things we know about: models
-        for provider in ThirdPartyProvider.objects.all():
-            self.register(provider, ensure=False)
+        self._providers['external'] = list(ThirdPartyProvider.objects.all())
 
     def _provider_type(self, provider):
         """
@@ -311,7 +303,6 @@ class ProviderRegistry(object):
         """
         Updates an entry in the registry with one provided
         """
-        self.ensure()
         type = self._provider_type(provider)
 
         try:
@@ -343,10 +334,7 @@ class ProviderRegistry(object):
         Locates the first provider that matches the URL. This
         prefers matching internal providers over external providers
         """
-        self.ensure()
-
         logger.debug('Locating provider match for %s' % url)
-
         return self.match_type(url, 'internal') or self.match_type(url, 'external')
 
     def match_type(self, url, type):
@@ -363,21 +351,18 @@ class ProviderRegistry(object):
 
         # If the match is internal, obtain specific instance
         if matched and hasattr(matched, 'get_object'):
-            # TODO: Should this try/except here?
-            matched = matched.get_object(url)
-        else:
-            logger.debug('Matched is None or does not have get_object: %s' % matched)
+            try:
+                matched = matched.get_object(url)
+            except:
+                matched = None
 
         return matched
 
-    def register(self, provider, ensure=True):
+    def register(self, provider):
         """
         Adds a provider to the internal registry. Must supply
         a valid instance of Provider
         """
-        if ensure:
-            self.ensure()
-
         if not isinstance(provider, Provider):
             try:
                 if not issubclass(provider, InternalProvider):
