@@ -353,7 +353,8 @@ class ProviderRegistry(object):
         if matched and hasattr(matched, 'get_object'):
             try:
                 matched = matched.get_object(url)
-            except:
+            except Exception:
+                logger.exception('InternalProvider %s get_object failed' % matched)
                 matched = None
 
         return matched

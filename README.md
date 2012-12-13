@@ -8,31 +8,44 @@ Monocle is a Django app built for rich content embedding using [OEmbed](http://o
 that is built with scalability and performance in mind
 
 
+Requirements
+------------
+- BeautifulSoup
+- Celery
+
+
 Documentation
 -------------
 Nothing to see here yet
 
 
-Things This Should Do/Notes
+Key Points and Features
 ---------------------------
-- Allow for a local provider mechanism: a model/view aware provider that doesn't hit the network
-  - Don't make any assumptions here about doing image resizing and what not
-    just define any requirements that implementors should handle
-- Custom oembeddable content field that triggers a celery task (if configured) to retrieve content
-- On request/template tag for oembeddable content, if cache miss, trigger a celery task (if configured)
-  for content and hyperlink the oembed link. If not, retrieve the content from the provider
-- Utilize django cache backend for holding rendered oembed content (Need to determine a good hash key)
-  Cache Key: request\_url
-- Similar template tags and filters from existing library
-- Tasks? Should there be any for cache maintenance?
-- Make no assumptions of "automagic" providers, try to generalize as much as possible
-- Prefer lxml.html over BeautifulSoup?
-- Model system should only provide for endpoints (i.e. third party providers)
-  - Multiple URL patterns for a single endpoint?
-  - Old system stores all providers in memory. Is that good? Use an in-memory registry?
-- Url/view system should allow retrieval of oembed content
-- Configurable exposing oembed endpoint for providers: is it needed?
-  - Currently used by the admin to suggest content details for video/etc
-- Configure to enable image resizing for local/model providers
-  - Model endpoint should define how to handle this?
-- Special case for embed.ly? Requires API credentials
+- Flexible OEmbed provider system/mixins
+  - External providers: resources fetched asynchronously
+  - Internal providers: no external requests made. Direct resource building
+- Custom oembeddable content fields that prefetch any external or cached internal oembed content
+- Non-blocking asynchronous external content retrieval
+- Custom template tags and filters for oembedding content
+- Cached oembed resources using Django cache backend
+  - Configurable cache expiration
+  - TTL utilization: automatic cache refresh of stale content
+- Database stored, configurable external providers
+- Providers configurable to be exposed via URL endpoint
+
+
+TODO
+----
+- Support embed.ly which introduces API credentials to the provider
+- Management command to pre-populate third party providers from embed.ly
+- Expose format=xml from oembed endpoint
+- Pre-configured provider fixtures
+- Allow callback= in JSON oembed endpoint requests
+- Support multiple URL requests from oembed endpoint
+- Better exception handling/custom error reporting
+- Expose list of exposed oembed providers via URL
+- Limited access to Django exposed oembed providers (same domain or API key)
+- Configurable allow https url schemes
+- Optional URL kwargs for provider endpoints
+- External providers configurable to handle XML or JSON
+- Non-specific instance check in provider registry (handle contrib external providers)
