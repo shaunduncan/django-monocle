@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class Consumer(object):
-    # TODO: Right regex here?
-    url_regex = re.compile(r'(^|\s+)(https?://.*?)(\s+|$)', re.DOTALL | re.I)
+    # From https://github.com/worldcompany/djangoembed/blob/master/oembed/constants.py#L43
+    url_regex = re.compile(r'(https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_|])', re.I)
 
     def __init__(self, content, maxwidth=None, maxheight=None):
         self.content = content
@@ -21,8 +21,7 @@ class Consumer(object):
 
     def get_urls(self, content):
         """Find all URLs in the content"""
-        # The regex returns a list of three-tuples and we only want the middle
-        return map(lambda x: x[1], self.url_regex.findall(content))
+        return self.url_regex.findall(content)
 
     def devour(self, content=None, skip_internal=False):
         """
