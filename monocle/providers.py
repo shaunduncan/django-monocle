@@ -78,6 +78,36 @@ class Provider(object):
             logger.warning('No URL schemes defined for provider %s' % self.__class__.__name__)
             return False
 
+    def nearest_allowed_size(self, width, height, maxwidth=None, maxheight=None):
+        """
+        Get the nearest size dimension below a maximum dimension. The dimension
+        threshold is the minimum of the specified size and requested maximum size.
+        The return value will either be the largest allowed size below the maximum
+        or will be the maximum if no allowed size can be found
+        """
+        logger.debug('Resizing (%s, %s) to nearest allowed size' % (width, height))
+        maxdim = (width, height)
+
+        if maxwidth and width > maxwidth:
+            logger.debug('Width exceeds maxwidth %s' % maxwidth)
+            maxdim = (maxwidth, maxdim[1])
+
+        if maxheight and height > maxheight:
+            logger.debug('Height exceeds maxheight %s' % maxheight)
+            maxdim = (maxdim[0], maxheight)
+
+        dims = getattr(self, 'DIMENSIONS', settings.RESOURCE_DEFAULT_DIMENSIONS)
+        smaller = lambda x, y: x[0] <= y[0] and x[1] <= y[1]
+        valid_sizes = [d for d in dims if smaller(d, maxdim)]
+
+        if valid_sizes:
+            valid_sizes.sort(reverse=True)
+            logger.debug('Nearest allowed size for %s: %s' % (maxdim, valid_sizes))
+            return valid_sizes[0]
+        else:
+            logger.debug('No appropriate size found. Returning default %s' % (maxdim,))
+            return maxdim
+
 
 class InternalProvider(Provider):
     """
@@ -173,36 +203,6 @@ class InternalProvider(Provider):
             return attr()
         else:
             return attr
-
-    def nearest_allowed_size(self, width, height, maxwidth=None, maxheight=None):
-        """
-        Get the nearest size dimension below a maximum dimension. The dimension
-        threshold is the minimum of the specified size and requested maximum size.
-        The return value will either be the largest allowed size below the maximum
-        or will be the maximum if no allowed size can be found
-        """
-        logger.debug('Resizing (%s, %s) to nearest allowed size' % (width, height))
-        maxdim = (width, height)
-
-        if maxwidth and width > maxwidth:
-            logger.debug('Width exceeds maxwidth %s' % maxwidth)
-            maxdim = (maxwidth, maxdim[1])
-
-        if maxheight and height > maxheight:
-            logger.debug('Height exceeds maxheight %s' % maxheight)
-            maxdim = (maxdim[0], maxheight)
-
-        dims = getattr(self, 'DIMENSIONS', settings.RESOURCE_DEFAULT_DIMENSIONS)
-        smaller = lambda x, y: x[0] <= y[0] and x[1] <= y[1]
-        valid_sizes = [d for d in dims if smaller(d, maxdim)]
-
-        if valid_sizes:
-            valid_sizes.sort(reverse=True)
-            logger.debug('Nearest allowed size for %s: %s' % (maxdim, valid_sizes))
-            return valid_sizes[0]
-        else:
-            logger.debug('No appropriate size found. Returning default %s' % (maxdim,))
-            return maxdim
 
     def _check_dimension(self, width, height, maxwidth=None, maxheight=None, message=None):
         """
