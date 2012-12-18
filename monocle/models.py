@@ -1,4 +1,5 @@
 import re
+import warnings
 
 from urlparse import urlparse
 
@@ -94,4 +95,4 @@ models.signals.post_delete.connect(_unregister_provider, sender=ThirdPartyProvid
 try:
     registry.ensure()
 except:
-    pass
+    warnings.warn('Monocle external provider failed autoload. Is the database synced?')
