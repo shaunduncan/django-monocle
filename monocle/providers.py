@@ -283,11 +283,18 @@ class ProviderRegistry(object):
         return provider in self._providers[self._provider_type(provider)]
 
     def ensure(self):
+        # Models have post_save/delete signals. We only need to ensure once
+        if self._providers['external']:
+            return
+
         # BOO circular import prevention
         from monocle.models import ThirdPartyProvider
 
         # Populate with things we know about: models
-        self._providers['external'] = list(ThirdPartyProvider.objects.all())
+        try:
+            self._providers['external'] = list(ThirdPartyProvider.objects.all())
+        except:
+            warnings.warn('Monocle external provider failed autoload. Is the database synced?')
 
     def _provider_type(self, provider):
         """
@@ -364,6 +371,8 @@ class ProviderRegistry(object):
         Adds a provider to the internal registry. Must supply
         a valid instance of Provider
         """
+        registry.ensure()
+
         if not isinstance(provider, Provider):
             try:
                 if not issubclass(provider, InternalProvider):

@@ -1,5 +1,4 @@
 import re
-import warnings
 
 from urlparse import urlparse
 
@@ -90,9 +89,3 @@ def _unregister_provider(sender, instance, **kwargs):
 # Connect signals
 models.signals.post_save.connect(_update_provider, sender=ThirdPartyProvider)
 models.signals.post_delete.connect(_unregister_provider, sender=ThirdPartyProvider)
-
-# Register providers - but only if the model is available
-try:
-    registry.ensure()
-except:
-    warnings.warn('Monocle external provider failed autoload. Is the database synced?')

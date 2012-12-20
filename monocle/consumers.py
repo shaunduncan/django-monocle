@@ -28,6 +28,7 @@ class Consumer(object):
         Consumes all OEmbed content URLs in the content. Returns a new
         version of the content with URLs replaced with rich content
         """
+        registry.ensure()
         content = self.content if not content else content
 
         for url in self.get_urls(content):
@@ -68,6 +69,7 @@ class HTMLConsumer(Consumer):
         that aren't hyperlinked and send the content/parent they belong to through the
         normal text consumer
         """
+        registry.ensure()
         content = self.content if not content else content
         soup = BeautifulSoup(content)
 
