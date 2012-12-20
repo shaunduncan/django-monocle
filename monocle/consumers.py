@@ -5,6 +5,7 @@ from BeautifulSoup import BeautifulSoup
 
 from monocle.providers import registry, InternalProvider
 from monocle.settings import settings
+from monocle.signals import pre_consume, post_consume
 
 
 logger = logging.getLogger(__name__)
@@ -23,11 +24,14 @@ class Consumer(object):
         """Find all URLs in the content"""
         return self.url_regex.findall(content)
 
-    def devour(self, content=None, skip_internal=False):
+    def devour(self, content=None, skip_internal=False, signals=True):
         """
         Consumes all OEmbed content URLs in the content. Returns a new
         version of the content with URLs replaced with rich content
         """
+        if signals:
+            pre_consume.send(sender=self)
+
         registry.ensure()
         content = self.content if not content else content
 
@@ -56,6 +60,9 @@ class Consumer(object):
                 else:
                     logger.warning('Provider %s returned a bad resource' % provider)
 
+        if signals:
+            post_consume.send(sender=self)
+
         return content
 
 
@@ -68,13 +75,16 @@ class HTMLConsumer(Consumer):
         # TODO: This might need work if we want to go all the way up the tree
         return node.parent and node.parent.name == 'a'
 
-    def devour(self, content=None, skip_internal=False):
+    def devour(self, content=None, skip_internal=False, signals=True):
         """
         This is a bit different than base Consumer. We don't really concern
         ourselves with communicating with providers. Instead we find all URLs
         that aren't hyperlinked and send the content/parent they belong to through the
         normal text consumer
         """
+        if signals:
+            post_consume.send(sender=self)
+
         registry.ensure()
         content = self.content if not content else content
         soup = BeautifulSoup(content)
@@ -85,8 +95,11 @@ class HTMLConsumer(Consumer):
                 logger.debug('Skipping hyperlinked content: %s' % element)
                 continue
 
-            replacement = super(HTMLConsumer, self).devour(str(element), skip_internal=skip_internal)
-            element.replaceWith(BeautifulSoup(replacement))
+            repl = super(HTMLConsumer, self).devour(str(element), skip_internal=skip_internal, signals=False)
+            element.replaceWith(BeautifulSoup(repl))
+
+        if signals:
+            post_consume.send(sender=self)
 
         return str(soup)
 
