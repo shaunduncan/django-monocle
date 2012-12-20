@@ -44,11 +44,17 @@ class Consumer(object):
                 logger.debug('Skipping uncached internal provider')
                 continue
 
-            resource = provider.get_resource(url, maxwidth=self.maxwidth, maxheight=self.maxheight)
-
-            logger.debug('Embedding %s for url %s' % (resource, url))
-
-            content = content.replace(url, resource.render())
+            # This is generally a safeguard against bad provider implementations
+            try:
+                resource = provider.get_resource(url, maxwidth=self.maxwidth, maxheight=self.maxheight)
+            except:
+                logger.exception('Failed to get resource from provider %s' % provider)
+            else:
+                if resource:
+                    logger.debug('Embedding %s for url %s' % (resource, url))
+                    content = content.replace(url, resource.render())
+                else:
+                    logger.warning('Provider %s returned a bad resource' % provider)
 
         return content
 
