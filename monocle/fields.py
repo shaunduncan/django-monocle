@@ -64,3 +64,27 @@ class OEmbedTextField(fields.TextField):
     def pre_save(self, model, add):
         prefetch(getattr(model, self.attname), html=self.contains_html)
         return super(OEmbedTextField, self).pre_save(model, add)
+
+
+class OEmbedURLField(fields.URLField):
+    """
+    An extension of URLField with optional attribute
+
+    prefetch_sizes: A list of two-tuples that allow the consumer to retrieve
+                    multiple sizes on save. The tuples should be in the form
+                    (maxwidth, maxheight) which will translate to URL parameters
+                    maxwidth and maxheight by the consumer. At least one size
+                    is required, but sizes such as (None, 100) or (100, None)
+                    are valid and result in fetching with ONLY maxwidth or
+                    maxheight.
+    """
+
+    description = 'URLField that transparently fetches OEmbed content on save'
+
+    def __init__(self, *args, **kwargs):
+        self.prefetch_sizes = kwargs.pop('prefetch_sizes', [])
+        super(OEmbedURLField, self).__init__(*args, **kwargs)
+
+    def pre_save(self, model, add):
+        prefetch(getattr(model, self.attname), html=False)
+        return super(OEmbedURLField, self).pre_save(model, add)
