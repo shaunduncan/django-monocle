@@ -34,7 +34,7 @@ class OEmbedCharField(fields.CharField):
         super(OEmbedCharField, self).__init__(*args, **kwargs)
 
     def pre_save(self, model, add):
-        prefetch(getattr(model, self.attname), html=self.contains_html)
+        prefetch(getattr(model, self.attname), html=self.contains_html, sizes=self.prefetch_sizes)
         return super(OEmbedCharField, self).pre_save(model, add)
 
 
@@ -63,7 +63,7 @@ class OEmbedTextField(fields.TextField):
         super(OEmbedTextField, self).__init__(*args, **kwargs)
 
     def pre_save(self, model, add):
-        prefetch(getattr(model, self.attname), html=self.contains_html)
+        prefetch(getattr(model, self.attname), html=self.contains_html, sizes=self.prefetch_sizes)
         return super(OEmbedTextField, self).pre_save(model, add)
 
 
@@ -87,5 +87,5 @@ class OEmbedURLField(fields.URLField):
         super(OEmbedURLField, self).__init__(*args, **kwargs)
 
     def pre_save(self, model, add):
-        prefetch(getattr(model, self.attname), html=False)
+        prefetch(getattr(model, self.attname), html=False, sizes=self.prefetch_sizes)
         return super(OEmbedURLField, self).pre_save(model, add)
