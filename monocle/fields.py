@@ -3,6 +3,7 @@ import logging
 from django.db.models import fields
 
 from monocle.consumers import prefetch
+from monocle.settings import settings
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class OEmbedCharField(fields.CharField):
 
     def __init__(self, *args, **kwargs):
         self.contains_html = kwargs.pop('contains_html', False)
-        self.prefetch_sizes = kwargs.pop('prefetch_sizes', [])
+        self.prefetch_sizes = kwargs.pop('prefetch_sizes', settings.RESOURCE_DEFAULT_DIMENSIONS)
         super(OEmbedCharField, self).__init__(*args, **kwargs)
 
     def pre_save(self, model, add):
@@ -58,7 +59,7 @@ class OEmbedTextField(fields.TextField):
 
     def __init__(self, *args, **kwargs):
         self.contains_html = kwargs.pop('contains_html', True)
-        self.prefetch_sizes = kwargs.pop('prefetch_sizes', [])
+        self.prefetch_sizes = kwargs.pop('prefetch_sizes', settings.RESOURCE_DEFAULT_DIMENSIONS)
         super(OEmbedTextField, self).__init__(*args, **kwargs)
 
     def pre_save(self, model, add):
@@ -82,7 +83,7 @@ class OEmbedURLField(fields.URLField):
     description = 'URLField that transparently fetches OEmbed content on save'
 
     def __init__(self, *args, **kwargs):
-        self.prefetch_sizes = kwargs.pop('prefetch_sizes', [])
+        self.prefetch_sizes = kwargs.pop('prefetch_sizes', settings.RESOURCE_DEFAULT_DIMENSIONS)
         super(OEmbedURLField, self).__init__(*args, **kwargs)
 
     def pre_save(self, model, add):

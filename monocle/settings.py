@@ -44,7 +44,8 @@ class Settings(object):
         Default dimensions for internal providers if implementations do not
         define valid sizes.
         """
-        return [(x, x) for x in xrange(100, 1000, 100)]
+        return getattr(_settings, 'MONOCLE_RESOURCE_DEFAULT_DIMENSIONS',
+                       [(x, x) for x in xrange(100, 1000, 100)])
 
     @property
     def RESOURCE_MIN_TTL(self):
