@@ -1,6 +1,5 @@
 import logging
 
-from django.conf import settings as _settings
 from django.core.cache import get_cache
 
 from monocle.settings import settings
@@ -17,7 +16,7 @@ class Cache(object):
     """
     def __init__(self):
         # Explicitly use django's CACHE_BACKEND. Celery might be different
-        self._cache = get_cache(getattr(_settings, 'CACHE_BACKEND', 'dummy'))
+        self._cache = get_cache(settings.CACHE_BACKEND)
 
     def make_key(self, *args):
         return '%s:%s' % (settings.CACHE_KEY_PREFIX, ':'.join(args))

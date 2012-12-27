@@ -106,5 +106,19 @@ class Settings(object):
         # 30 Day Default
         return getattr(_settings, 'MONOCLE_CACHE_AGE', 60*60*24*30)
 
+    @property
+    def CACHE_BACKEND(self):
+        if hasattr(_settings, 'MONOCLE_CACHE_BACKEND'):
+            return getattr(_settings, 'MONOCLE_CACHE_BACKEND')
+        elif hasattr(_settings, 'CACHE_BACKEND'):
+            # Django < 1.3
+            return getattr(_settings, 'CACHE_BACKEND')
+        else:
+            # Django >= 1.3 : Fallback to locmem if not configured
+            try:
+                return _settings.CACHES['default']['BACKEND']
+            except (AttributeError, KeyError):
+                return 'django.core.cache.backends.locmem.LocMemCache'
+
 
 settings = Settings()
