@@ -11,6 +11,7 @@ from monocle.cache import cache
 from monocle.resources import Resource
 from monocle.settings import settings
 from monocle.tasks import request_external_oembed
+from monocle.util import synced
 
 
 logger = logging.getLogger(__name__)
@@ -290,11 +291,9 @@ class ProviderRegistry(object):
         # BOO circular import prevention
         from monocle.models import ThirdPartyProvider
 
-        # Populate with things we know about: models
-        try:
+        # Populate with things we know about: models - ONLY IF THE DB IS SYNCED
+        if synced(ThirdPartyProvider):
             self._providers['external'] = list(ThirdPartyProvider.objects.all())
-        except:
-            warnings.warn('Monocle external provider failed autoload. Is the database synced?')
 
     def _provider_type(self, provider):
         """

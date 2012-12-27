@@ -11,3 +11,20 @@ def extract_content_url(endpoint_url):
         return url[0]
     else:
         return url
+
+
+def synced(*models):
+    """
+    Returns True if all model tables are in the full table list.
+    If database introspection fails, False is returned
+    """
+    try:
+        from django.db import connection as conn
+        tables = conn.introspection.get_table_list(conn.cursor())
+    except:
+        return False
+
+    for model in models:
+        if model._meta.db_table not in tables:
+            return False
+    return True
