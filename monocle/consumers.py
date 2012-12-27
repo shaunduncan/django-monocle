@@ -35,6 +35,9 @@ class Consumer(object):
         registry.ensure()
         content = self.content if not content else content
 
+        if content is None:
+            return ''
+
         for url in self.get_urls(content):
             provider = registry.match(url)
 
@@ -87,6 +90,10 @@ class HTMLConsumer(Consumer):
 
         registry.ensure()
         content = self.content if not content else content
+
+        if content is None:
+            return ''
+
         soup = BeautifulSoup(content)
 
         for element in soup.findAll(text=self.url_regex):
