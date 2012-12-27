@@ -83,7 +83,7 @@ class HTMLConsumer(Consumer):
         normal text consumer
         """
         if signals:
-            post_consume.send(sender=self)
+            pre_consume.send(sender=self)
 
         registry.ensure()
         content = self.content if not content else content
