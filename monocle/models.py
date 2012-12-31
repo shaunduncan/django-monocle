@@ -54,7 +54,6 @@ class URLScheme(models.Model):
         OK: http://www.flickr.com/photos/*
         OK: http://www.flickr.com/photos/*/foo
         OK: http://*.flickr.com/photos/*
-        NOT OK: https://www.flickr.com/photos/*
         NOT OK: http://*.com/photos/*
         NOT OK: *://www.flickr.com/photos/*
         """
@@ -63,8 +62,8 @@ class URLScheme(models.Model):
 
         parts = urlparse(self.scheme.lower())
 
-        if not parts.scheme or parts.scheme == 'https':
-            raise ValidationError('URL Scheme cannot be a wildcard and must not be HTTPS')
+        if not parts.scheme:
+            raise ValidationError('URL Scheme cannot be a wildcard')
 
         if re.match(r'\*\.?(\w{3}|(\w{2}\.)?\w{2})$', parts.netloc):
             raise ValidationError('URL Scheme is too agressive')
