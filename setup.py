@@ -20,5 +20,4 @@ setup(name='django-monocle',
       download_url='https://github.com/coxmediagroup/django-monocle/downloads',
       license='BSD',
       packages=find_packages(),
-      install_requires=['celery', 'BeautifulSoup']
       )

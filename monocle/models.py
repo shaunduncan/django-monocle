@@ -54,6 +54,7 @@ class URLScheme(models.Model):
         OK: http://www.flickr.com/photos/*
         OK: http://www.flickr.com/photos/*/foo
         OK: http://*.flickr.com/photos/*
+        OK: https://www.flickr.com/photos/*
         NOT OK: http://*.com/photos/*
         NOT OK: *://www.flickr.com/photos/*
         """
