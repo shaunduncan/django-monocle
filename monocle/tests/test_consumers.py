@@ -27,10 +27,10 @@ HTML_CONTENT = """
 class ConsumerTestCase(TestCase):
 
     def setUp(self):
-        self.consumer = Consumer(TEXT_CONTENT)
+        self.consumer = Consumer()
 
-    def test_get_urls(self):
-        urls = self.consumer.get_urls(TEXT_CONTENT)
+    def test_url_regex(self):
+        urls = self.consumer.url_regex.findall(TEXT_CONTENT)
         expected = [
             'http://foo.com',
             'http://bar.com',
@@ -40,14 +40,14 @@ class ConsumerTestCase(TestCase):
         self.assertEqual(expected, urls)
 
     @patch('monocle.consumers.registry')
-    def test_devour(self, registry):
+    def test_enrich(self, registry):
         provider = Mock()
         provider.get_resource.return_value = provider
         provider.render.return_value = 'RESOURCE'
 
         registry.match.return_value = provider
 
-        result = self.consumer.devour(TEXT_CONTENT)
+        result = self.consumer.enrich(TEXT_CONTENT)
 
         self.assertIn('RESOURCE, RESOURCE, and (RESOURCE)', result)
 
@@ -55,7 +55,7 @@ class ConsumerTestCase(TestCase):
 class HTMLConsumerTestCase(TestCase):
 
     def setUp(self):
-        self.consumer = HTMLConsumer(HTML_CONTENT)
+        self.consumer = HTMLConsumer()
 
     def test_is_hyperlinked(self):
         soup = BeautifulSoup('NOTLINK <a>LINKED</a>')

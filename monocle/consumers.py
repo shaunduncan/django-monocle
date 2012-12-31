@@ -15,30 +15,18 @@ class Consumer(object):
     # From https://github.com/worldcompany/djangoembed/blob/master/oembed/constants.py#L43
     url_regex = re.compile(r'(https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_|])', re.I)
 
-    def __init__(self, content, maxwidth=None, maxheight=None):
-        self.content = content
+    def __init__(self, maxwidth=None, maxheight=None, skip_internal=False):
         self.maxwidth = maxwidth
         self.maxheight = maxheight
-
-    def get_urls(self, content):
-        """Find all URLs in the content"""
-        return self.url_regex.findall(content)
-
-    def devour(self, content=None, skip_internal=False, signals=True):
-        """
-        Consumes all OEmbed content URLs in the content. Returns a new
-        version of the content with URLs replaced with rich content
-        """
-        if signals:
-            pre_consume.send(sender=self)
-
+        self.skip_internal = skip_internal
         registry.ensure()
-        content = self.content if not content else content
 
-        if content is None:
-            return ''
-
-        for url in self.get_urls(content):
+    def enrich(self, content):
+        """
+        Returns an enriched version of content that replaces all URLs that
+        have a provider with valid resource data
+        """
+        for url in self.url_regex.findall(content):
             provider = registry.match(url)
 
             if not provider:
@@ -46,7 +34,7 @@ class Consumer(object):
                 continue
 
             # Bypass internal providers if they aren't cached
-            if (skip_internal and isinstance(provider, InternalProvider) and
+            if (self.skip_internal and isinstance(provider, InternalProvider) and
                     not settings.CACHE_INTERNAL_PROVIDERS):
                 logger.debug('Skipping uncached internal provider')
                 continue
@@ -62,10 +50,16 @@ class Consumer(object):
                     content = content.replace(url, resource.render())
                 else:
                     logger.warning('Provider %s returned a bad resource' % provider)
+        return content
 
-        if signals:
-            post_consume.send(sender=self)
-
+    def devour(self, content=None):
+        """
+        Consumes all OEmbed content URLs in the content. Returns a new
+        version of the content with URLs replaced with rich content
+        """
+        pre_consume.send(sender=self)
+        content = self.enrich(content or '')
+        post_consume.send(sender=self)
         return content
 
 
@@ -78,46 +72,35 @@ class HTMLConsumer(Consumer):
         # TODO: This might need work if we want to go all the way up the tree
         return node.parent and node.parent.name == 'a'
 
-    def devour(self, content=None, skip_internal=False, signals=True):
+    def devour(self, content=None):
         """
-        This is a bit different than base Consumer. We don't really concern
-        ourselves with communicating with providers. Instead we find all URLs
-        that aren't hyperlinked and send the content/parent they belong to through the
-        normal text consumer
+        Devours content URLs by finding all element nodes whose text content
+        contains a URL and is not hyperlinked and then enriching those nodes directly
         """
-        if signals:
-            pre_consume.send(sender=self)
-
-        registry.ensure()
-        content = self.content if not content else content
-
-        if content is None:
-            return ''
-
-        soup = BeautifulSoup(content)
+        pre_consume.send(sender=self)
+        soup = BeautifulSoup(content or '')
 
         for element in soup.findAll(text=self.url_regex):
             # Don't handle linked URLs
             if self._is_hyperlinked(element):
                 logger.debug('Skipping hyperlinked content: %s' % element)
                 continue
+            element.replaceWith(BeautifulSoup(self.enrich(str(element))))
 
-            repl = super(HTMLConsumer, self).devour(str(element), skip_internal=skip_internal, signals=False)
-            element.replaceWith(BeautifulSoup(repl))
-
-        if signals:
-            post_consume.send(sender=self)
-
+        post_consume.send(sender=self)
         return str(soup)
 
 
 def devour(content, html=False, maxwidth=None, maxheight=None, skip_internal=False):
-    c = HTMLConsumer(content) if html else Consumer(content)
+    if html:
+        c = HTMLConsumer(skip_internal=skip_internal)
+    else:
+        c = Consumer(skip_internal=skip_internal)
 
     c.maxwidth = maxwidth
     c.maxheight = maxheight
 
-    return c.devour(content, skip_internal=skip_internal)
+    return c.devour(content)
 
 
 def prefetch(content, html=False, sizes=None):
