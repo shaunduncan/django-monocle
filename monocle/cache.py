@@ -16,7 +16,21 @@ class Cache(object):
     """
     def __init__(self):
         # Explicitly use django's CACHE_BACKEND. Celery might be different
-        self._cache = get_cache(settings.CACHE_BACKEND)
+        self._cache = self.get_cache()
+
+    def get_cache(self):
+        """
+        Intelligently handle the CACHE_BACKEND and call to get_cache based
+        on whether to support django < 1.2 or >= 1.3 style cache naming
+        """
+        backend = settings.CACHE_BACKEND.copy()
+
+        if isinstance(backend, basestring):
+            # Django < 1.2 style
+            return get_cache(backend)
+        else:
+            # Django >= 1.3 style
+            return get_cache(backend.pop('BACKEND'), **backend)
 
     def make_key(self, *args):
         return '%s:%s' % (settings.CACHE_KEY_PREFIX, ':'.join(args))
