@@ -114,9 +114,9 @@ class Settings(object):
             # Django >= 1.3 : Fallback to locmem if not configured
             return _settings.CACHES.get('default',
                                         {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'})
-        elif hasattr(_settings, 'CACHE_BACKEND'):
+        else:
             # Django < 1.3
-            return getattr(_settings, 'CACHE_BACKEND')
+            return getattr(_settings, 'CACHE_BACKEND', 'locmem://')
 
 
 settings = Settings()
