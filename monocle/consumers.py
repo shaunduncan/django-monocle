@@ -50,7 +50,7 @@ class Consumer(object):
                 content = content.replace(url, resource.render())
         return content
 
-    def devour(self, content=None, maxwidth=None, maxheight=None):
+    def devour(self, content, maxwidth=None, maxheight=None):
         """
         Consumes all OEmbed content URLs in the content. Returns a new
         version of the content with URLs replaced with rich content
@@ -70,7 +70,7 @@ class HTMLConsumer(Consumer):
         # TODO: This might need work if we want to go all the way up the tree
         return node.parent and node.parent.name == 'a'
 
-    def devour(self, content=None):
+    def devour(self, content, maxwidth=None, maxheight=None):
         """
         Devours content URLs by finding all element nodes whose text content
         contains a URL and is not hyperlinked and then enriching those nodes directly
@@ -83,7 +83,8 @@ class HTMLConsumer(Consumer):
             if self._is_hyperlinked(element):
                 logger.debug('Skipping hyperlinked content: %s' % element)
                 continue
-            element.replaceWith(BeautifulSoup(self.enrich(str(element))))
+            repl = self.enrich(str(element), maxwidth=maxwidth, maxheight=maxheight)
+            element.replaceWith(BeautifulSoup(repl))
 
         post_consume.send(sender=self)
         return str(soup)
