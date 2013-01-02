@@ -56,7 +56,7 @@ class Settings(object):
             django_key = '%s%s' % (self._SETTINGS_PREFIX, attr)
             return getattr(_settings, django_key, self._DEFAULTS[attr])
         else:
-            raise AttributeError
+            raise AttributeError('%s is not a valid setting' % attr)
 
     @property
     def RESOURCE_TYPES(self):
