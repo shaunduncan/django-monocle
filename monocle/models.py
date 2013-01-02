@@ -92,4 +92,4 @@ models.signals.post_delete.connect(_unregister_provider, sender=ThirdPartyProvid
 
 
 # Prepopulate
-registry.ensure()
+registry.ensure_populated()

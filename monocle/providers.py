@@ -283,13 +283,13 @@ class ProviderRegistry(object):
     def __contains__(self, provider):
         return provider in self._providers[self._provider_type(provider)]
 
-    def ensure(self):
+    def ensure_populated(self):
+        # BOO circular import prevention
+        from monocle.models import ThirdPartyProvider
+
         # Models have post_save/delete signals. We only need to ensure once
         if self._providers['external']:
             return
-
-        # BOO circular import prevention
-        from monocle.models import ThirdPartyProvider
 
         # Populate with things we know about: models - ONLY IF THE DB IS SYNCED
         if synced(ThirdPartyProvider):
@@ -370,7 +370,7 @@ class ProviderRegistry(object):
         Adds a provider to the internal registry. Must supply
         a valid instance of Provider
         """
-        registry.ensure()
+        registry.ensure_populated()
 
         if not isinstance(provider, Provider):
             try:

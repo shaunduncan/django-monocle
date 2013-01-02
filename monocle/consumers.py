@@ -19,7 +19,7 @@ class Consumer(object):
         self.maxwidth = maxwidth
         self.maxheight = maxheight
         self.skip_internal = skip_internal
-        registry.ensure()
+        registry.ensure_populated()
 
     def enrich(self, content):
         """

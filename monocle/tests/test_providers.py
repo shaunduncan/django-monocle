@@ -241,8 +241,8 @@ class ProviderRegistryTestCase(TestCase):
     def test_provider_type_external(self):
         self.assertEqual('external', self.registry._provider_type(self.external))
 
-    def test_ensure_adds_stored(self):
-        self.registry.ensure()
+    def test_ensure_populated_adds_stored(self):
+        self.registry.ensure_populated()
         self.assertIn(self.stored, self.registry)
 
     def test_update_adds_missing_from_signal(self):
@@ -263,7 +263,7 @@ class ProviderRegistryTestCase(TestCase):
 
     def test_update(self):
         self.registry.clear()
-        self.registry.ensure()
+        self.registry.ensure_populated()
 
         self.stored.foo = 'FOO'
         self.registry.update(self.stored)
@@ -271,7 +271,7 @@ class ProviderRegistryTestCase(TestCase):
         self.assertEqual(getattr(self.registry._providers['external'][0], 'foo', None), 'FOO')
 
     def test_unregister(self):
-        self.registry.ensure()
+        self.registry.ensure_populated()
         self.assertIn(self.stored, self.registry)
         self.registry.unregister(self.stored)
 
@@ -286,7 +286,7 @@ class ProviderRegistryTestCase(TestCase):
 
     def test_match_prefers_internal(self):
         self.registry.clear()
-        self.registry.ensure()
+        self.registry.ensure_populated()
         self.registry.register(TestInternalProvider)
 
         self.assertTrue(isinstance(self.registry.match('http://test.biz/foo'), TestInternalProvider))
