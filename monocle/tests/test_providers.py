@@ -19,7 +19,7 @@ class ProviderTestCase(TestCase):
 
     def test_get_request_url(self):
         params = {'url': self.resource_url, 'format': 'json'}
-        request_url = self.provider.get_request_url(params)
+        request_url = self.provider.get_request_url(**params)
 
         self.assertIn(self.provider.api_endpoint, request_url)
         self.assertIn(urlencode({'url': self.resource_url}), request_url)
@@ -32,11 +32,11 @@ class ProviderTestCase(TestCase):
         }
 
         params.update({'maxwidth': '0', 'maxheight': 100})
-        request_url = self.provider.get_request_url(params)
+        request_url = self.provider.get_request_url(**params)
         self.assertNotIn('maxwidth', request_url)
 
         params.update({'maxwidth': 100, 'maxheight': None})
-        request_url = self.provider.get_request_url(params)
+        request_url = self.provider.get_request_url(**params)
         self.assertNotIn('maxheight', request_url)
 
     @patch('monocle.providers.request_external_oembed')

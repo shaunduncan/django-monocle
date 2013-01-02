@@ -35,9 +35,11 @@ class Provider(object):
         """Obtain the OEmbed resource JSON"""
         params = kwargs
         params['url'] = url
+
+        # Only support JSON format
         params['format'] = 'json'
 
-        request_url = self.get_request_url(params)
+        request_url = self.get_request_url(**params)
         logger.info('Obtaining OEmbed resource at %s' % request_url)
 
         cached, primed = cache.get_or_prime(request_url, primer=Resource(params['url']))
@@ -45,14 +47,19 @@ class Provider(object):
         if primed or cached.is_stale:
             # Prevent many tasks being issued
             if cached.is_stale:
-                cache.set(request_url, cached.fresh())
+                cache.set(request_url, cached.refresh())
 
             request_external_oembed.apply_async((request_url,))
             logger.info('Scheduled external request for OEmbed resource %s' % url)
 
         return cached
 
-    def get_request_url(self, params):
+    def get_request_url(self, **params):
+        """
+        Constructs a request URL to the provider API endpoint with kwargs
+        as URL parameters. Removes maxwidth and maxheight if they are like
+        zero (i.e 0, '0' or None)
+        """
         zeros = (0, '0', None)
 
         # Remove maxwidth/maxheight of "0"
@@ -251,10 +258,12 @@ class InternalProvider(Provider):
     def get_resource(self, url, **kwargs):
         self._params = kwargs
         self._params['url'] = url
+
+        # Only support JSON format
         self._params['format'] = 'json'
 
         if settings.CACHE_INTERNAL_PROVIDERS:
-            cache_key = self.get_request_url(self._params)
+            cache_key = self.get_request_url(**self._params)
             logger.debug('Checking InternalProvider cache for key %s' % cache_key)
             cached, primed = cache.get_or_prime(cache_key, primer=Resource(url))
 
@@ -262,7 +271,7 @@ class InternalProvider(Provider):
                 logger.debug('Rebuilding new or stale internal provider resource at %s' % url)
                 # This is just a safeguard in case the rebuild takes a little time
                 if cached.is_stale:
-                    cache.set(cache_key, cached.fresh())
+                    cache.set(cache_key, cached.refresh())
 
                 cached = self._build_resource(**self._params)
                 cache.set(cache_key, cached)

@@ -86,7 +86,7 @@ class Resource(object):
 
         return age > self.ttl
 
-    def fresh(self):
+    def refresh(self):
         """Returns a 'fresh' version of this resource (internal datetime is now)"""
         self.created = datetime.utcnow()
         return self

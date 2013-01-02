@@ -45,12 +45,12 @@ class RequestExternalOEmbedTask(Task):
                 try:
                     # TODO: Any validation that should happen here?
                     # Do we store invalid data? If invalid do we clear the cache?
-                    resource = Resource(original_url, json.loads(request.read()))
+                    data = json.loads(request.read())
                 except ValueError:
                     logger.error('OEmbed response from %s contains invalid JSON' % url)
                 else:
                     # Update the cache with this data
-                    cache.set(url, resource)
+                    cache.set(url, Resource(original_url, data))
                 finally:
                     request.close()
 
