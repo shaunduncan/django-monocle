@@ -19,8 +19,8 @@ class ThirdPartyProvider(models.Model, Provider):
     name = models.CharField(max_length=50, blank=True)
     api_endpoint = models.URLField(verify_exists=False)
     resource_type = models.CharField(choices=RESOURCE_CHOICES, max_length=10)
-    is_active = models.BooleanField(default=True)
-    expose = models.BooleanField(default=False,
+    is_active = models.BooleanField(default=True, db_index=True)
+    expose = models.BooleanField(default=False, db_index=True,
                                  help_text="Expose this resource to external requests")
 
     class Meta:

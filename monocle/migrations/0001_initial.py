@@ -14,8 +14,8 @@ class Migration(SchemaMigration):
             ('name', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
             ('api_endpoint', self.gf('django.db.models.fields.URLField')(max_length=200)),
             ('resource_type', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('is_active', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('expose', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('is_active', self.gf('django.db.models.fields.BooleanField')(default=True, db_index=True)),
+            ('expose', self.gf('django.db.models.fields.BooleanField')(default=False, db_index=True)),
         ))
         db.send_create_signal('monocle', ['ThirdPartyProvider'])
 
@@ -40,9 +40,9 @@ class Migration(SchemaMigration):
         'monocle.thirdpartyprovider': {
             'Meta': {'ordering': "('api_endpoint', 'resource_type')", 'object_name': 'ThirdPartyProvider'},
             'api_endpoint': ('django.db.models.fields.URLField', [], {'max_length': '200'}),
-            'expose': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'expose': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True', 'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
             'resource_type': ('django.db.models.fields.CharField', [], {'max_length': '10'})
         },
