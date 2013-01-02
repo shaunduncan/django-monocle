@@ -26,10 +26,7 @@ class Provider(object):
     url_schemes = None
     resource_type = None
     expose = False  # Expose this provider externally
-
-    @property
-    def _internal(self):
-        return False
+    _internal = False
 
     def get_resource(self, url, **kwargs):
         """Obtain the OEmbed resource JSON"""
@@ -129,6 +126,7 @@ class InternalProvider(Provider):
     html_template = None
     expose = settings.EXPOSE_LOCAL_PROVIDERS
     api_endpoint = 'http://localhost/'
+    _internal = True
 
     # Internal providers are specific instances
     _params = {}
@@ -149,10 +147,6 @@ class InternalProvider(Provider):
         else:
             logger.warning('No URL schemes defined for provider %s' % cls.__name__)
             return False
-
-    @property
-    def _internal(self):
-        return True
 
     def render_html(self, data):
         """
