@@ -28,7 +28,7 @@ class ThirdPartyProvider(models.Model, Provider):
 
     @property
     def url_schemes(self):
-        return list(self._schemes.all())
+        return self._schemes.all()
 
     def clean(self):
         """Ensures the API endpoint is valid"""

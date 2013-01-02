@@ -77,7 +77,7 @@ class Provider(object):
         return regex
 
     def match(self, url):
-        if self.url_schemes and len(self.url_schemes):
+        if self.url_schemes:
             return re.match(self._schemes_to_regex_str(self.url_schemes), url, re.I)
         else:
             logger.warning('No URL schemes defined for provider %s' % self.__class__.__name__)
@@ -142,7 +142,7 @@ class InternalProvider(Provider):
 
     @classmethod
     def match(cls, url):
-        if cls.url_schemes and len(cls.url_schemes):
+        if cls.url_schemes:
             return re.match(cls._schemes_to_regex_str(cls.url_schemes), url, re.I)
         else:
             logger.warning('No URL schemes defined for provider %s' % cls.__name__)
