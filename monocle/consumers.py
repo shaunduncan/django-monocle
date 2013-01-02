@@ -45,11 +45,11 @@ class Consumer(object):
             except:
                 logger.exception('Failed to get resource from provider %s' % provider)
             else:
-                if resource.is_valid:
-                    logger.debug('Embedding %s for url %s' % (resource, url))
-                    content = content.replace(url, resource.render())
-                else:
+                if not resource.is_valid:
                     logger.warning('Provider %s returned a bad resource' % provider)
+
+                logger.debug('Embedding %s for url %s' % (resource, url))
+                content = content.replace(url, resource.render())
         return content
 
     def devour(self, content=None):
