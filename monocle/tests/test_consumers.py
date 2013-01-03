@@ -5,7 +5,7 @@ from unittest2 import TestCase
 
 from BeautifulSoup import BeautifulSoup
 
-from monocle.consumers import Consumer, HTMLConsumer
+from monocle.consumers import Consumer, HTMLConsumer, prefetch
 
 
 TEXT_CONTENT = """
@@ -77,3 +77,46 @@ class HTMLConsumerTestCase(TestCase):
         self.assertIn('<p>URL content RESOURCE</p>', result)
         self.assertIn('<p>URL content RESOURCE, RESOURCE, and (RESOURCE)</p>', result)
         self.assertIn('<p>Link content <a>http://foo.com</a>', result)
+
+
+class PrefetchTestCase(TestCase):
+
+    def mock_provider_and_registry(self, registry):
+        provider = Mock()
+        provider.get_resource.return_value = provider
+        provider.render.return_value = 'RESOURCE'
+
+        registry.match.return_value = provider
+
+        return provider, registry
+
+    @patch('monocle.consumers.registry')
+    @patch.object(Consumer, 'enrich')
+    def test_prefetch_no_sizes(self, enrich_fn, registry):
+        provider, registry = self.mock_provider_and_registry(registry)
+        prefetch(TEXT_CONTENT)
+
+        enrich_fn.assert_called_once_with(TEXT_CONTENT, maxwidth=None, maxheight=None)
+
+    @patch('monocle.consumers.registry')
+    @patch.object(Consumer, 'enrich')
+    def test_prefetch_tuple_sizes(self, enrich_fn, registry):
+        provider, registry = self.mock_provider_and_registry(registry)
+        prefetch(TEXT_CONTENT, sizes=[(100, 200), (300, 400)])
+
+        self.assertEqual(enrich_fn.call_count, 3)
+        enrich_fn.assert_any_call(TEXT_CONTENT, maxwidth=None, maxheight=None)
+        enrich_fn.assert_any_call(TEXT_CONTENT, maxwidth=100, maxheight=200)
+        enrich_fn.assert_any_call(TEXT_CONTENT, maxwidth=300, maxheight=400)
+
+    @patch('monocle.consumers.registry')
+    @patch.object(Consumer, 'enrich')
+    def test_prefetch_int_sizes(self, enrich_fn, registry):
+        provider, registry = self.mock_provider_and_registry(registry)
+        prefetch(TEXT_CONTENT, sizes=[100])
+
+        self.assertEqual(enrich_fn.call_count, 4)
+        enrich_fn.assert_any_call(TEXT_CONTENT, maxwidth=None, maxheight=None)
+        enrich_fn.assert_any_call(TEXT_CONTENT, maxwidth=100, maxheight=None)
+        enrich_fn.assert_any_call(TEXT_CONTENT, maxwidth=None, maxheight=100)
+        enrich_fn.assert_any_call(TEXT_CONTENT, maxwidth=100, maxheight=100)
