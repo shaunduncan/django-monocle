@@ -23,14 +23,14 @@ class Cache(object):
         Intelligently handle the CACHE_BACKEND and call to get_cache based
         on whether to support django < 1.2 or >= 1.3 style cache naming
         """
-        backend = settings.CACHE_BACKEND.copy()
+        backend = settings.CACHE_BACKEND
 
         if isinstance(backend, basestring):
             # Django < 1.2 style
             return get_cache(backend)
         else:
             # Django >= 1.3 style
-            return get_cache(backend.pop('BACKEND'), **backend)
+            return get_cache(backend['BACKEND'], **backend)
 
     def make_key(self, *args):
         return '%s:%s' % (settings.CACHE_KEY_PREFIX, ':'.join(args))
