@@ -81,17 +81,5 @@ class Settings(object):
             'provider_url', 'thumbnail_url', 'thumbnail_width', 'thumbnail_height'
         )
 
-    @property
-    def CACHE_BACKEND(self):
-        if hasattr(_settings, 'MONOCLE_CACHE_BACKEND'):
-            return getattr(_settings, 'MONOCLE_CACHE_BACKEND')
-        elif hasattr(_settings, 'CACHES'):
-            # Django >= 1.3 : Fallback to locmem if not configured
-            return _settings.CACHES.get('default',
-                                        {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'})
-        else:
-            # Django < 1.3
-            return getattr(_settings, 'CACHE_BACKEND', 'locmem://')
-
 
 settings = Settings()

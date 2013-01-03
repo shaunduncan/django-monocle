@@ -1,6 +1,6 @@
 import logging
 
-from django.core.cache import get_cache
+from django.core.cache import cache as _cache
 
 from monocle.settings import settings
 from monocle.signals import cache_miss, cache_hit
@@ -14,23 +14,6 @@ class Cache(object):
     Wrapper around the configured django cache to ensure timeouts and
     proper cache key structure
     """
-    def __init__(self):
-        # Explicitly use django's CACHE_BACKEND. Celery might be different
-        self._cache = self.get_cache()
-
-    def get_cache(self):
-        """
-        Intelligently handle the CACHE_BACKEND and call to get_cache based
-        on whether to support django < 1.2 or >= 1.3 style cache naming
-        """
-        backend = settings.CACHE_BACKEND
-
-        if isinstance(backend, basestring):
-            # Django < 1.2 style
-            return get_cache(backend)
-        else:
-            # Django >= 1.3 style
-            return get_cache(backend['BACKEND'], **backend)
 
     def make_key(self, *args):
         return '%s:%s' % (settings.CACHE_KEY_PREFIX, ':'.join(args))
@@ -42,24 +25,24 @@ class Cache(object):
         """
         key = self.make_key(key)
 
-        if self._cache.add(key, primer, timeout=settings.CACHE_AGE):
+        if _cache.add(key, primer, timeout=settings.CACHE_AGE):
             logger.debug('Primed cache key %s with %s for age %s' % (key, primer, settings.CACHE_AGE))
             cache_miss.send(sender=self, key=key)
             return primer, True
         else:
             cache_hit.send(sender=self, key=key)
-            return self._cache.get(key), False
+            return _cache.get(key), False
 
     def set(self, key, value):
         """
         Wraps django cache.set() so that we can apply CACHE_AGE setting
         and transparently ensure a properly prefixed cache key
         """
-        self._cache.set(self.make_key(key), value, timeout=settings.CACHE_AGE)
+        _cache.set(self.make_key(key), value, timeout=settings.CACHE_AGE)
 
     def get(self, key):
         key = self.make_key(key)
-        val = self._cache.get(key)
+        val = _cache.get(key)
 
         # Django cache backend explicitly returns `None` on a miss
         if val is None:
@@ -68,7 +51,7 @@ class Cache(object):
         return val
 
     def delete(self, key):
-        return self._cache.delete(self.make_key(key))
+        return _cache.delete(self.make_key(key))
 
 
 cache = Cache()
