@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load oembed_tags %}
+
+
+{% block rail %}
+    <h4>{{ entry.blog.name }}</h4>
+    <p>{{ entry.blog.summary|oembed_text:"200x" }}</p>
+{% endblock rail %}
+
+
+{% block content %}
+    <h2><a href="/entry/{{ entry.id }}">{{ entry.title }}</a></h2>
+    {% oembed 700x700 %}
+        {{ entry.content|safe }}
+    {% endoembed %}
+
+    <div style="margin-top: 25px">
+        <a href="/">Back</a>
+    </div>
+{% endblock content %}

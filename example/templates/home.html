@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load oembed_tags %}
+
+
+{% block rail %}
+    <h4>{{ blog.name }}</h4>
+    <p>{{ blog.summary|oembed_text:"200x" }}</p>
+{% endblock rail %}
+
+
+{% block content %}
+    {% for entry in entries %}
+        <h2><a href="/entry/{{ entry.id }}">{{ entry.title }}</a></h2>
+        {% oembed 400x400 %}
+            {{ entry.content|safe }}
+        {% endoembed %}
+    {% empty %}
+        <h2><i>No Entries</i></h2>
+    {% endfor %}
+{% endblock content %}

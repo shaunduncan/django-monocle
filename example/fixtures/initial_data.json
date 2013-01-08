@@ -1,0 +1,164 @@
+[
+    {
+        "pk": 2, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.flickr.com/services/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Flickr", 
+            "resource_type": "photo"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.youtube.com/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "YouTube", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*youtube.com/watch*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/v/*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://youtu.be/*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/user/*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/*#*/*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://m.youtube.com/watch*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://m.youtube.com/index*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/profile*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/view_play_list*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/playlist*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.flickr.com/photos/*", 
+            "provider": 2
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://flic.kr/*", 
+            "provider": 2
+        }
+    },
+    {
+        "pk": 1, 
+        "model": "example.blog", 
+        "fields": {
+            "name": "Monocle Example Blog", 
+            "summary": "This is an example blog that showcases some of the features provided by django-monocle"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "example.entry", 
+        "fields": {
+            "content": "<p>This is the first post of the demo application</p>\r\n\r\n<p>It only contains text content</p>", 
+            "blog": 1, 
+            "title": "First Post"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "example.entry", 
+        "fields": {
+            "content": "<p>This post has oembedded local content</p>\r\n\r\n<div>http://localhost/entry/1</div>\r\n\r\n<p>Hyperlinked content is not oembedded: <a href=\"/entry/1\">http://localhost/entry/1</a></p>\r\n\r\n<p>OEmbed Response: <a href=\"http://localhost:8080/oembed/?url=http%3A%2F%2Flocalhost%2Fentry%2F1\">http://localhost:8080/oembed/?url=http%3A%2F%2Flocalhost%2Fentry%2F1</a></p>", 
+            "blog": 1, 
+            "title": "Internal Provider"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "example.entry", 
+        "fields": {
+            "content": "<p>This post has oembedded external video content</p>\r\n\r\nhttp://www.youtube.com/watch?v=5-EAmkf3Azo\r\n\r\n<p>Hyperlinked content is not oembedded: <a href=\"http://www.youtube.com/watch?v=5-EAmkf3Azo\">http://www.youtube.com/watch?v=5-EAmkf3Azo</a></p>", 
+            "blog": 1, 
+            "title": "External Video Provider"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "example.entry", 
+        "fields": {
+            "content": "<p>This post has oembedded external photo content. It also uses an overridden template to customize the display</p>\r\n\r\nhttp://www.flickr.com/photos/christinacarty/4590119917/\r\n\r\n<p>Hyperlinked content is not oembedded: <a href=\"http://www.flickr.com/photos/christinacarty/4590119917/\">http://www.flickr.com/photos/christinacarty/4590119917/</a></p>", 
+            "blog": 1, 
+            "title": "External Photo Provider"
+        }
+    }
+]

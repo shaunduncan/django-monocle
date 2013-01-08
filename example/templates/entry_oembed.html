@@ -1,0 +1,14 @@
+<style>
+    .entryOembed {
+        margin: 10px;
+        padding: 10px;
+        border: 1px solid black;
+        background: #CCCCCC;
+    }
+</style>
+
+<div style="width: {{ width }}px; height; {{ height }}px;" class="entryOembed">
+    <h5>{{ entry.title }}</h5>
+
+    {{ entry.content|safe }}
+</div>
