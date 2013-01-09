@@ -52,3 +52,10 @@ TODO
 - Optional URL kwargs for provider endpoints
 - External providers configurable to handle XML or JSON
 - Non-specific instance check in provider registry (handle contrib external providers)
+
+
+Contribution and License
+------------------------
+Developed by Shaun Duncan <shaun.duncan@gmail.com> at
+[CMG, Digital and Strategy](http://cmgdigital.com/) and is licensed under the
+terms of a MIT license.
