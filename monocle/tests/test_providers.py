@@ -227,7 +227,7 @@ class ProviderRegistryTestCase(TestCase):
         self.stored = self.make_provider()
 
     def tearDown(self):
-        self.stored.delete()
+        ThirdPartyProvider.objects.all().delete()
 
     def make_provider(self):
         provider = ThirdPartyProvider.objects.create(api_endpoint='http://youtube.com/oembed',
@@ -267,6 +267,8 @@ class ProviderRegistryTestCase(TestCase):
 
         self.stored.foo = 'FOO'
         self.registry.update(self.stored)
+
+        print self.registry._providers['external']
 
         self.assertEqual(getattr(self.registry._providers['external'][0], 'foo', None), 'FOO')
 

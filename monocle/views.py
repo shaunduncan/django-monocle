@@ -10,6 +10,20 @@ class HttpResponseNotImplemented(HttpResponse):
 
 
 def oembed(request):
+    """
+    A view that adheres to `OEmbed Spec <http://oembed.com>`_ of what a provider
+    endpoint should do. Any :class:`monocle.providers.Provider` that is configured
+    to be exposed can be provided via this view.
+
+    Both ``maxwidth`` and ``maxheight`` are honored, but no other URL parameter is.
+    This implies that all responses are delivered as JSON (i.e. ``format=json``).
+    XML is not supported. If a request specifies ``format=xml`` or some other unknown
+    format other than JSON, a 501 response is returned.
+
+    If no provider is found, or a provider is not exposed, a 404 is returned.
+    If no resource can be retrieved from the found provider, or it is invalid, a 404
+    is also returned. Else the resource is returned as JSON.
+    """
     url = request.GET.get('url')
     format = request.GET.get('format', 'json').lower()
 

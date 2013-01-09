@@ -14,7 +14,10 @@ RESOURCE_CHOICES = [(x, x.capitalize()) for x in settings.RESOURCE_TYPES]
 
 class ThirdPartyProvider(models.Model, Provider):
     """
-    Database-backed third-party provider configuration
+    Database-backed third-party provider configuration. These are considered by
+    monocle to be endpoint configuration of external providers. This model utilizes
+    signals to ensure that the internal :class:`monocle.providers.ProviderRegistry`
+    is maintained in a current state.
     """
     name = models.CharField(max_length=50, blank=True)
     api_endpoint = models.URLField(verify_exists=False)
@@ -31,7 +34,10 @@ class ThirdPartyProvider(models.Model, Provider):
         return self._schemes.all()
 
     def clean(self):
-        """Ensures the API endpoint is valid"""
+        """
+        Ensures the API endpoint is valid according to OEmbed spec, which is only that
+        the endpoint cannot be HTTPS
+        """
         if not self.api_endpoint:
             raise ValidationError('API Endpoint is required')
 
@@ -43,20 +49,30 @@ class ThirdPartyProvider(models.Model, Provider):
 
 
 class URLScheme(models.Model):
+    """
+    Asterisk wildcard URL that represents patterns a :class:`ThirdPartyProvider` is a valid
+    provider for
+    """
     scheme = models.CharField(max_length=255, unique=True,
                               help_text="Wildcard URL pattern: http://*.flickr.com/photos/*")
     provider = models.ForeignKey('ThirdPartyProvider', related_name='_schemes')
 
     def clean(self):
         """
-        Validate the URL scheme according to these examples
+        Validate the URL scheme according to these examples from the
+        `OEmbed Spec <http://oembed.com>`_
 
-        OK: http://www.flickr.com/photos/*
-        OK: http://www.flickr.com/photos/*/foo
-        OK: http://*.flickr.com/photos/*
-        OK: https://www.flickr.com/photos/*
-        NOT OK: http://*.com/photos/*
-        NOT OK: *://www.flickr.com/photos/*
+        Valid Schemes
+
+        * ``http://www.flickr.com/photos/*``
+        * ``http://www.flickr.com/photos/*/foo``
+        * ``http://*.flickr.com/photos/*``
+        * ``https://www.flickr.com/photos/*``
+
+        Invalid Schemes
+
+        * ``http://*.com/photos/*``
+        * ``*://www.flickr.com/photos/*``
         """
         if not self.scheme:
             raise ValidationError('URL Scheme is required')

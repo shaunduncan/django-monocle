@@ -12,7 +12,7 @@ from monocle.settings import settings
 
 class Resource(object):
     """
-    Basically a collection of OEmbed response data.
+    A JSON compatible response from an OEmbed provider
     """
 
     def __init__(self, url, data=None):
@@ -35,7 +35,17 @@ class Resource(object):
         return key in self._data
 
     def render(self):
-        """Render this resource to the correct template for proper embedding"""
+        """
+        Renders this resource to the template corresponding to this resource type.
+        The template is rendered with variables ``url`` and ``resource`` that represent
+        the original requested URL and this resource respectively.
+
+        If the resource is considered invalid from :func:`is_valid`, the original
+        requested URL is returned unless ``RESOURCE_URLIZE_INVALID`` is configured
+        in :mod:`monocle.settings`. If so, then the original URL is returned hyperlinked
+
+        :returns: Rendered oembed content
+        """
         if not self.is_valid:
             if settings.RESOURCE_URLIZE_INVALID:
                 template_name = 'monocle/link.html'
@@ -53,9 +63,9 @@ class Resource(object):
         Perform validation against this resource object. The resource is considered
         valid if it meets the following criteria:
 
-        - It has oembed response data
-        - It is a valid oembed resource type
-        - It has the required attributes based on its type
+        * It has oembed response data
+        * It is a valid oembed resource type
+        * It has the required attributes based on its type
         """
         # We can create resources without valid data
         if not self._data:
@@ -78,8 +88,8 @@ class Resource(object):
     @property
     def is_stale(self):
         """
-        Returns True if this resource's age since it was updated
-        is greater than it's TTL
+        True of the current timestamp is greater than the sum of the resource's
+        creation timestamp plus its TTL, False otherwise.
         """
         delta = datetime.utcnow() - self.created
         age = (delta.days * 60 * 60 * 24) + delta.seconds
@@ -87,20 +97,30 @@ class Resource(object):
         return age > self.ttl
 
     def refresh(self):
-        """Returns a 'fresh' version of this resource (internal datetime is now)"""
+        """
+        Returns a version of this resource that is considered fresh by updating
+        its internal timestamp to now
+        """
         self.created = datetime.utcnow()
         return self
 
     @property
     def json(self):
-        """Return JSON ouput minus any empty things"""
+        """
+        A JSON string without any empty or null keys
+        """
         return json.dumps(dict([(k, v) for k, v in self._data.items() if v]))
 
     def get_ttl(self):
         """
-        Returns the TTL of this resource ensuring that it meets configurable
-        minimum value. This value could be specified by the provider. If not
-        a configurable default TTL is used
+        Returns the TTL of this resource ensuring that it at minimum the value
+        of ``RESOURCE_MIN_TTL`` from :mod:`monocle.settings`.
+
+        This value could be specified by the provider via the property ``cache_age``.
+        If it is not, the value ``RESOURCE_DEFAULT_TTL`` from :mod:`monocle.settings`
+        is used.
+
+        :returns: TTL in seconds
         """
         try:
             return max(settings.RESOURCE_MIN_TTL,
@@ -109,6 +129,11 @@ class Resource(object):
             return settings.RESOURCE_DEFAULT_TTL
 
     def set_ttl(self, value):
+        """
+        Sets the TTL value of this resource ensuring that it is at minimum the value
+        of ``RESOURCE_MIN_TTL`` from :mod:`monocle.settings`. If it is not, the value
+        of ``RESOURCE_DEFAULT_TTL`` from :mod:`monocle.settings` is used.
+        """
         try:
             value = max(settings.RESOURCE_MIN_TTL, int(value))
         except (ValueError, TypeError):

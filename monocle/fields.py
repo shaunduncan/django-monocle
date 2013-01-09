@@ -1,3 +1,6 @@
+"""
+A collection of Django field extensions that handle OEmbed content prefetching
+"""
 import logging
 
 from django.db.models import fields
@@ -11,19 +14,19 @@ logger = logging.getLogger(__name__)
 
 class OEmbedCharField(fields.CharField):
     """
-    An extension of CharField with two optional attributes
+    An extension of ``CharField`` with two optional attributes
 
-    contains_html: If the content of this field is marked to contain
-                   html content, this will affect the parsing behavior.
-                   By default this is false and any matching OEmbed URL
-                   will be consumed
-    prefetch_sizes: A list of two-tuples that allow the consumer to retrieve
-                    multiple sizes on save. The tuples should be in the form
-                    (maxwidth, maxheight) which will translate to URL parameters
-                    maxwidth and maxheight by the consumer. At least one size
-                    is required, but sizes such as (None, 100) or (100, None)
-                    are valid and result in fetching with ONLY maxwidth or
-                    maxheight.
+    * ``contains_html``
+
+      * Bool indicating whether content of this field should be treated
+        as html. Default is False.
+
+    * ``prefetch_sizes``
+
+      * List of either integer two-tuples (width, height) or single integers.
+        This has the effect of prefetching multiple size variations. These values
+        translate to request arguments ``maxwidth`` and ``maxheight`` so tuples
+        in the form ``(100, None)`` and ``(None, 100)`` are valid.
     """
 
     description = 'CharField that transparently fetches OEmbed content on save'
@@ -40,19 +43,19 @@ class OEmbedCharField(fields.CharField):
 
 class OEmbedTextField(fields.TextField):
     """
-    An extension of TextField with two optional attributes
+    An extension of ``TextField`` with two optional attributes
 
-    contains_html: If the content of this field is marked to contain
-                   html content, this will affect the parsing behavior.
-                   By default this is false and any matching OEmbed URL
-                   will be consumed
-    prefetch_sizes: A list of two-tuples that allow the consumer to retrieve
-                    multiple sizes on save. The tuples should be in the form
-                    (maxwidth, maxheight) which will translate to URL parameters
-                    maxwidth and maxheight by the consumer. At least one size
-                    is required, but sizes such as (None, 100) or (100, None)
-                    are valid and result in fetching with ONLY maxwidth or
-                    maxheight.
+    * ``contains_html``
+
+      * Bool indicating whether content of this field should be treated
+        as html. Default is True.
+
+    * ``prefetch_sizes``
+
+      * List of either integer two-tuples (width, height) or single integers.
+        This has the effect of prefetching multiple size variations. These values
+        translate to request arguments ``maxwidth`` and ``maxheight`` so tuples
+        in the form ``(100, None)`` and ``(None, 100)`` are valid.
     """
 
     description = 'TextField that transparently fetches OEmbed content on save'
@@ -69,15 +72,15 @@ class OEmbedTextField(fields.TextField):
 
 class OEmbedURLField(fields.URLField):
     """
-    An extension of URLField with optional attribute
+    An extension of ``URLField`` with optional attribute. Content is **always**
+    parsed as plain text.
 
-    prefetch_sizes: A list of two-tuples that allow the consumer to retrieve
-                    multiple sizes on save. The tuples should be in the form
-                    (maxwidth, maxheight) which will translate to URL parameters
-                    maxwidth and maxheight by the consumer. At least one size
-                    is required, but sizes such as (None, 100) or (100, None)
-                    are valid and result in fetching with ONLY maxwidth or
-                    maxheight.
+    * ``prefetch_sizes``
+
+      * List of either integer two-tuples (width, height) or single integers.
+        This has the effect of prefetching multiple size variations. These values
+        translate to request arguments ``maxwidth`` and ``maxheight`` so tuples
+        in the form ``(100, None)`` and ``(None, 100)`` are valid.
     """
 
     description = 'URLField that transparently fetches OEmbed content on save'

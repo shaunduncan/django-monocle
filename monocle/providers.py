@@ -18,10 +18,31 @@ logger = logging.getLogger(__name__)
 
 
 class InvalidProvider(Exception):
+    """
+    General purpose exception used to indicated a provider is misconfigured
+    """
     pass
 
 
 class Provider(object):
+    """
+    A Provider is essentially an OEmbed endpoint that, well, provides
+    rich content to a consumer. Providers are aware of URL patterns of
+    rich content they provide and what URL endpoint should be contacted
+    to retrieve a resource for OEmbedding.
+
+    Monocle providers should be configured to expose an attribute representing
+    the type of content they provide. Valid options are:
+
+    * rich
+    * link
+    * video
+    * photo
+
+    Monocle providers are also optionally exposed from a django url (configured
+    in :mod:`monocle.urls`). Exposing monocle providers allows external sources
+    to consume rich content from django
+    """
     api_endpoint = None
     url_schemes = None
     resource_type = None
@@ -29,7 +50,18 @@ class Provider(object):
     _internal = False
 
     def get_resource(self, url, **kwargs):
-        """Obtain the OEmbed resource JSON"""
+        """
+        Obtain an OEmbed resource JSON
+
+        :param string url: Requested rich content URL
+        :param kwargs: Optional arguments along with this request.
+                       Currently only ``maxwidth`` and ``maxheight`` supported.
+        :returns: :class:`monocle.resources.Resource`
+
+        .. note::
+            Currently only JSON-compatible requests are honored. If a request is
+            made for an XML resource, it will still return a JSON resource
+        """
         params = kwargs
         params['url'] = url
 
@@ -56,6 +88,8 @@ class Provider(object):
         Constructs a request URL to the provider API endpoint with kwargs
         as URL parameters. Removes maxwidth and maxheight if they are like
         zero (i.e 0, '0' or None)
+
+        :returns: Escaped endpoint url
         """
         zeros = (0, '0', None)
 
@@ -67,9 +101,20 @@ class Provider(object):
         return '%s?%s' % (self.api_endpoint, urlencode(params))
 
     @classmethod
-    def _schemes_to_regex_str(cls, schemes):
+    def schemes_to_regex_str(cls, schemes):
         """
-        Replace wildcards with non-greedy dot-all and escape true '.'
+        Replace wildcards with non-greedy dot-all and escaped true dots.
+        Since many providers may honor several URL patterns for content they
+        serve, this will essentially create a single regular expression that
+        can test all of them simultaneously.
+
+        For Example
+
+        >>> cls.schemes_to_regex_str(['http://foo.com/a/*', 'http://foo.com/b/*'])
+        "(http://foo.com/a/.\*?|http://foo.com/b/.\*?|http://foo.com/c/.\*?)"
+
+        :param list schemes: URL pattern strings
+        :returns: A single regex string
         """
         regex = '(%s)' % '|'.join(map(str, schemes))
         regex = regex.replace('.', '\\.').replace('*', '.*?')
@@ -77,18 +122,33 @@ class Provider(object):
         return regex
 
     def match(self, url):
+        """
+        Tests a url against the url schemes of a provider instance
+
+        :param string url: URL to test
+        :returns: Bool False if provider has no schemes, None if no match found,
+                  a python re match if found
+        """
         if self.url_schemes:
-            return re.match(self._schemes_to_regex_str(self.url_schemes), url, re.I)
+            return re.match(self.schemes_to_regex_str(self.url_schemes), url, re.I)
         else:
             logger.warning('No URL schemes defined for provider %s' % self.__class__.__name__)
             return False
 
     def nearest_allowed_size(self, width, height, maxwidth=None, maxheight=None):
         """
-        Get the nearest size dimension below a maximum dimension. The dimension
-        threshold is the minimum of the specified size and requested maximum size.
-        The return value will either be the largest allowed size below the maximum
-        or will be the maximum if no allowed size can be found
+        Obtain a 'nearest size' that is just below a specific maximum. In other words,
+        this is min(current_size, max_size). This will scan either the provider's
+        ``DIMENSION`` attribute (a list of int two-tuples representing valid sizes) or
+        ``RESOURCE_DEFAULT_DIMENSIONS`` configured in :mod:`monocle.settings`.
+
+        :param integer width: Current width integer
+        :param integer height: Current height integer
+        :param integer maxwidth: Maximum width integer to constrain within
+        :param integer maxheight: Maximum height integer to constrain within
+        :returns: Size as integer two-tuple (width, height). This is either
+                  largest allowable size or the default maximum if no allowable size
+                  found
         """
         logger.debug('Resizing (%s, %s) to nearest allowed size' % (width, height))
         maxdim = (width, height)
@@ -116,8 +176,31 @@ class Provider(object):
 
 class InternalProvider(Provider):
     """
-    An internal provider that does not require any network operation.
-    A lot of what should be done here is up to the implementer.
+    An internal provider is meant as a means to abstract locally provided
+    rich content resources. In essence, this means that these type of providers
+    require no network operations. Instead, implementers should provide a specific
+    mechanism to retrieve an object-specific instance :func:`get_object`.
+
+    Properly implemented providers should follow a basic contract
+
+    * Implement :func:`get_object` as a means to convert a URL to an instance
+    * Define attribute ``DIMENSIONS`` of integer two-tuples
+    * Define attribute ``html_template`` that is a str template path used to render
+      object specific HTML for embedding
+    * Define attribute ``url_schemes`` as a list of asterisk wildcard URL patterns
+    * Define attribute ``resource_type`` that is a valid OEmbed type
+    * Define attributes ``DEFAULT_WIDTH`` and ``DEFAULT_HEIGHT`` as fallback
+      dimensions in case oembed consumers do not specify maximum dimensions
+
+    Providers should also define properties or methods the correspond
+    to names of OEmbed resource attributes. These are listed in :mod:`monocle.settings`
+    under ``RESOURCE_REQUIRED_ATTRS`` and ``RESOURCE_OPTIONAL_ATTRS``.
+
+    Implementations are not automatically must be added manually via
+    :class:`ProviderRegistry`:
+
+        from monocle.providers import registry
+        registry.register(MyInternalProvider)
     """
 
     # A list of tuples of valid size dimensions: (width, height)
@@ -134,23 +217,31 @@ class InternalProvider(Provider):
     @classmethod
     def get_object(cls, url):
         """
-        Internal providers should instance specific. Any internal provider
-        in the registry will invoke this method to get a specific instance
-        to handle OEmbed requests
+        A mechanism to convert a URL for some rich content and return a specific
+        instance of InternalProvider. This should be implemented by subclasses
+        of :class:`InternalProvider` otherwise NotImplementedError will be raised.
+        Implementers should ensure this method returns a provider instance or None
+        if no suitable provider can be found for the given URL.
+
+        :param string url: URL to convert to provider instance
+        :returns: A provider instance or None
         """
         raise NotImplementedError
 
     @classmethod
     def match(cls, url):
         if cls.url_schemes:
-            return re.match(cls._schemes_to_regex_str(cls.url_schemes), url, re.I)
+            return re.match(cls.schemes_to_regex_str(cls.url_schemes), url, re.I)
         else:
             logger.warning('No URL schemes defined for provider %s' % cls.__name__)
             return False
 
     def render_html(self, data):
         """
-        Helper to directly render data to the html_template of this provider
+        Helper to directly render data to the html_template of this provider.
+
+        :param dict data: Data that is passed directly to the template as a context
+        :returns: Rendered template
         """
         if not self.html_template:
             return ''
@@ -180,22 +271,22 @@ class InternalProvider(Provider):
         Raises NotImplementedError if required by resource type but not
         implemented and indicated as required
 
-        Example:
+        Example::
 
-        class VideoProvider(LocalProvider):
-            resource_type = 'video'
-            html_template = 'path/to/embed/template.html'
+            class VideoProvider(LocalProvider):
+                resource_type = 'video'
+                html_template = 'path/to/embed/template.html'
 
-            def html(self):
-                return self.render_html(data)
+                def html(self):
+                    return self.render_html(data)
 
-            @property
-            def width(self):
-                return 100
+                @property
+                def width(self):
+                    return 100
 
-            @property
-            def height(self):
-                return 100
+                @property
+                def height(self):
+                    return 100
         """
         attr = getattr(self, name, None)
 
@@ -218,6 +309,10 @@ class InternalProvider(Provider):
             warnings.warn(message or 'Resource size exceeds allowable dimensions')
 
     def _build_resource(self, **kwargs):
+        """
+        Constructs a valid JSON resource response complying to OEmbed spec based
+        on the attributes exposed by the provider
+        """
         # These are always required
         url = kwargs.get('url')
         data = {
@@ -278,15 +373,32 @@ class InternalProvider(Provider):
 
 class ProviderRegistry(object):
     """
-    Storage mechanism for providers to quickly identify a match
+    An in-memory storage mechanism for all provider implementations.
+    Currently, external providers are pre-populated as instances of
+    :class:`ThirdPartyProvider`. Implementations of :class:`InternalProvider`
+    need to be manually added to registry::
+
+        from monocle.providers import registry
+        registry.register(MyProvider)
     """
     # Separate internal and external providers. Prefer internal first
     _providers = {'internal': [], 'external': []}
 
     def __contains__(self, provider):
+        """
+        Checks if a provider instance or class is in the registry
+
+        :param provider: A :class:`Provider` instance or subclass
+        :returns: True if in registry, False otherwise
+        """
         return provider in self._providers[self._provider_type(provider)]
 
     def ensure_populated(self):
+        """
+        Ensures the external provider cache is pre-populated with all external
+        provider instances. This will run only if the internal cache of external
+        providers is empty
+        """
         # BOO circular import prevention
         from monocle.models import ThirdPartyProvider
 
@@ -300,17 +412,26 @@ class ProviderRegistry(object):
 
     def _provider_type(self, provider):
         """
-        Resolves the provider type as internal or external
+        Resolves the provider type as internal or external. This is done
+        by checking the ``_internal`` attribute of the given parameter
+
+        :param provider: A :class:`Provider` instance or subclass
+        :returns: str 'internal' if an internal provider, str 'external' otherwise
         """
         return 'internal' if provider._internal else 'external'
 
     def clear(self):
-        """Clears the internal provider registry"""
+        """
+        Clears the internal provider registry
+        """
         self._providers = {'internal': [], 'external': []}
 
     def update(self, provider):
         """
-        Updates an entry in the registry with one provided
+        Updates an entry in the registry with one provided. If the provider
+        does not exist in the registry, it is silently added.
+
+        :param provider: A :class:`Provider` instance or subclass
         """
         type = self._provider_type(provider)
 
@@ -327,9 +448,10 @@ class ProviderRegistry(object):
     def unregister(self, provider):
         """
         Removes a provider from the registry.
+
+        :param provider: A :class:`Provider` instance or subclass
         """
         type = self._provider_type(provider)
-
         logger.debug('Removing provider %s to %s registry' % (provider, type))
 
         try:
@@ -342,6 +464,9 @@ class ProviderRegistry(object):
         """
         Locates the first provider that matches the URL. This
         prefers matching internal providers over external providers
+
+        :param string url: URL to match a provider against
+        :returns: A provider instance or None if no match is found
         """
         logger.debug('Locating provider match for %s' % url)
         return self.match_type(url, 'internal') or self.match_type(url, 'external')
@@ -350,6 +475,10 @@ class ProviderRegistry(object):
         """
         Searches the internal provider registry for a matching
         provider for the url based on type
+
+        :param string url: URL to match a provider against
+        :param string type: The type of provider to check (either 'internal' or 'external')
+        :returns: A provider instance or None if no match is found
         """
         matched = None
 
@@ -370,8 +499,10 @@ class ProviderRegistry(object):
 
     def register(self, provider):
         """
-        Adds a provider to the internal registry. Must supply
-        a valid instance of Provider
+        Adds an internal provider class to the registry.
+
+        :param provider: A subclass of :class:`InternalProvider`
+        :raises: :class:`InvalidProvider` if the supplied param is not a valid subclass
         """
         registry.ensure_populated()
 

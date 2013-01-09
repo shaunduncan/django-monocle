@@ -1,3 +1,8 @@
+"""
+This module provides a single cache wrapper instance that can be used as follows::
+
+    from monocle.cache import cache
+"""
 import logging
 
 from django.core.cache import cache as _cache
@@ -11,17 +16,31 @@ logger = logging.getLogger(__name__)
 
 class Cache(object):
     """
-    Wrapper around the configured django cache to ensure timeouts and
-    proper cache key structure
+    A minimal wrapper around ``django.core.cache.cache`` that both ensures
+    proper timeouts and key structure
     """
 
     def make_key(self, *args):
+        """
+        Returns a consistent cache key that is the result of prefixing
+        ``CACHE_KEY_PREFIX`` from :mod:`monocle.settings` with method args
+        joined by a colon.
+
+        For example
+
+        >>> make_key('foo', 'bar')
+        "MONOCLE:foo:bar"
+        """
         return '%s:%s' % (settings.CACHE_KEY_PREFIX, ':'.join(args))
 
     def get_or_prime(self, key, primer=''):
         """
-        Primes the cache if value does not exists. Returns
-        cached and boolean if cache was primed. Hit/Miss are sent here
+        Gets an object from cache or primes the cache with a specified primer
+        if the specified key does not exist in cache.
+
+        :param string key: Cache key to retrieve
+        :param primer: Specific value to prime the cache with if no key exists
+        :returns: Two-tuple (value, primed) where primed indicates if cache was primed
         """
         key = self.make_key(key)
 
@@ -35,12 +54,24 @@ class Cache(object):
 
     def set(self, key, value):
         """
-        Wraps django cache.set() so that we can apply CACHE_AGE setting
-        and transparently ensure a properly prefixed cache key
+        Wrapper for ``cache.set()`` to ensure that the cache key is properly
+        formatted and setting value ``CACHE_AGE`` is specified as a timeout
+
+        :param string key: Cache key
+        :param value: Cache value
+        :returns: Result of Django ``cache.set()``
         """
         _cache.set(self.make_key(key), value, timeout=settings.CACHE_AGE)
 
     def get(self, key):
+        """
+        Retrieves an object from cache ensuring the specified key is properly formatted.
+        Calls to this method will send either ``cache_miss`` or ``cache_hit`` signals
+        depeding on whether the result of django ``cache.get()`` is None or not respectively.``
+
+        :param string key: Cache key to retrieve
+        :returns: Result of Django ``cache.get()``
+        """
         key = self.make_key(key)
         val = _cache.get(key)
 

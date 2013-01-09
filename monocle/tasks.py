@@ -12,9 +12,10 @@ from monocle.util import extract_content_url
 
 class RequestExternalOEmbedTask(Task):
     """
-    Fetch an oembed resource from an external provider with
-    sensible task retry. Results are expected to be valid JSON
-    meaning the url provided must explicitly contain format=json
+    A celery task that is meant to perform asynchronous requests to external
+    providers so as not to block anything. Results are explicitly expected
+    to be valid JSON, meaning the URL provided must contain ``format=json``.
+    XML formatted responses are currently unsupported
     """
     name = 'request_external_oembed'
     ignore_result = True

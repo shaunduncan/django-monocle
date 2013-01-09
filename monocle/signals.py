@@ -1,5 +1,11 @@
 """
-Simple collection of signals that can be useful for metric recording
+Various types of signals that may be useful for various recording. The following
+signals are exposed
+
+* ``cache_miss`` - sent when a request for cached resource returns None
+* ``cache_hit`` - sent when a request for cached resource returns not None
+* ``pre_consume`` - sent on request to consume content, prior to enrichment
+* ``post_consume`` - sent before returning enriched content from consumption
 """
 from django.dispatch import Signal
 

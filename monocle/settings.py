@@ -1,10 +1,18 @@
+"""
+Configurable settings for Monocle. Interaction should occur via the single
+instance of :class:`Settings`::
+
+    from monocle.settings import settings
+"""
 from django.conf import settings as _settings
 
 
 class Settings(object):
     """
-    Monocle settings exposed as object properties to allow for dynamic
-    settings support
+    Django settings proxy used by monocle in such a way that value retrieval
+    is performed on-demand. Most settings are entirely configurable via
+    ``DJANGO_SETTINGS_MODULE`` and should be prefixed with ``MONOCLE_``. For example
+    ``RESOURCE_DEFAULT_TTL`` can be customized with setting ``MONOCLE_RESOURCE_DEFAULT_TTL``.
     """
     _SETTINGS_PREFIX = 'MONOCLE_'
     _DEFAULTS = {
@@ -60,12 +68,40 @@ class Settings(object):
 
     @property
     def RESOURCE_TYPES(self):
-        """Valid OEmbed Resource Types"""
+        """
+        Valid OEmbed Resource Types. This is a tuple of the strings
+
+        * link
+        * photo
+        * rich
+        * video
+
+        .. note::
+           This settings is **NOT** configurable
+        """
         return ('link', 'photo', 'rich', 'video')
 
     @property
     def RESOURCE_REQUIRED_ATTRS(self):
-        """Resource attributes that are required by resource type"""
+        """
+        Resource attributes that are required by resource type. Resources
+        of type `link` require no additional attributes. Others do:
+
+        * ``photo`` types
+
+            * ``url``
+            * ``width``
+            * ``height``
+
+        * ``rich`` and ``video`` types
+
+            * ``html``
+            * ``width``
+            * ``height``
+
+        .. note::
+           This settings is **NOT** configurable
+        """
         return {
             'link': (),
             'photo': ('url', 'width', 'height'),
@@ -75,7 +111,23 @@ class Settings(object):
 
     @property
     def RESOURCE_OPTIONAL_ATTRS(self):
-        """Full list of OEmbed resource attributes that are considered optional"""
+        """
+        Full list of OEmbed resource attributes that are considered optional as
+        per the `OEmbed Spec <http://oembed.com>`_.
+
+        * ``title``
+        * ``author_name``
+        * ``author_url``
+        * ``cache_age``
+        * ``provider_name``
+        * ``provider_url``
+        * ``thumbnail_url``
+        * ``thumbnail_height``
+        * ``thumbnail_width``
+
+        .. note::
+           This settings is **NOT** configurable
+        """
         return (
             'title', 'author_name', 'author_url', 'cache_age', 'provider_name',
             'provider_url', 'thumbnail_url', 'thumbnail_width', 'thumbnail_height'
