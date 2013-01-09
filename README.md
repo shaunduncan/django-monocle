@@ -16,7 +16,10 @@ Requirements
 
 Documentation
 -------------
-Nothing to see here yet
+Full documentation can be built via tox::
+
+    $ tox -e docs
+    $ cd .tox/docs/build/html
 
 
 Key Points and Features
