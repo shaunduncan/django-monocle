@@ -43,7 +43,7 @@ class ProviderTestCase(TestCase):
     @patch('monocle.providers.cache')
     def test_get_resource_stale_calls_task(self, mock_cache, mock_task):
         resource = Resource(self.resource_url)
-        resource.created = resource.created.replace(year=1984)
+        resource.created = resource.created - (60*60*24*365*10)
 
         mock_cache.get_or_prime = mock_cache
         mock_cache.return_value = (resource, False)
@@ -165,7 +165,7 @@ class InternalProviderTestCase(TestCase):
         setattr(settings, 'MONOCLE_CACHE_INTERNAL_PROVIDERS', True)
 
         resource = Resource(self.resource_url)
-        resource.created = resource.created.replace(year=1984)
+        resource.created = resource.created - (60*60*24*365*10)
 
         mock_cache.get_or_prime = mock_cache
         mock_cache.return_value = (resource, False)

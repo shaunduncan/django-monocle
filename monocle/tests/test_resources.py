@@ -46,8 +46,8 @@ class ResourceTestCase(TestCase):
         self.resource.ttl = 3600
         self.assertFalse(self.resource.is_stale)
 
-        # Make it stale
-        self.resource.created = self.resource.created.replace(year=1984)
+        # Make it stale by 10 years
+        self.resource.created = self.resource.created - (60*60*24*365*10)
         self.assertTrue(self.resource.is_stale)
 
     def test_is_valid_has_required_attrs(self):

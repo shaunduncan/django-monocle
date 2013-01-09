@@ -1,7 +1,6 @@
 import json
 import os
-
-from datetime import datetime
+import time
 
 from django.template import Context
 from django.template.loader import get_template
@@ -17,7 +16,7 @@ class Resource(object):
 
     def __init__(self, url, data=None):
         self.url = url
-        self.created = datetime.utcnow()
+        self.created = time.time()
         self._data = data or {}
 
     def __getitem__(self, key):
@@ -91,17 +90,14 @@ class Resource(object):
         True of the current timestamp is greater than the sum of the resource's
         creation timestamp plus its TTL, False otherwise.
         """
-        delta = datetime.utcnow() - self.created
-        age = (delta.days * 60 * 60 * 24) + delta.seconds
-
-        return age > self.ttl
+        return (time.time() - self.created) > self.ttl
 
     def refresh(self):
         """
         Returns a version of this resource that is considered fresh by updating
         its internal timestamp to now
         """
-        self.created = datetime.utcnow()
+        self.created = time.time()
         return self
 
     @property
