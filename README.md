@@ -16,10 +16,20 @@ Requirements
 
 Documentation
 -------------
-Full documentation can be built via tox::
+Full documentation can be built easily via tox::
 
     $ tox -e docs
     $ cd .tox/docs/build/html
+
+Or, alternatively, can be built directly using sphinx. Note, however,
+that a direct sphinx build will require you install Django, Celery, and BeautifulSoup.
+A django settings file is required, so you must specify this when building and the
+monocle tests settings should suffice for this purpose::
+
+    $ pip install django celery beautifulsoup
+    $ cd docs
+    $ DJANGO_SETTINGS_MODULE=monocle.tests.settings make clean html
+    $ cd build/html
 
 
 Key Points and Features
@@ -56,6 +66,6 @@ TODO
 
 Contribution and License
 ------------------------
-Developed by Shaun Duncan <shaun.duncan@gmail.com> at
+Developed by Shaun Duncan <shaun.duncan@coxinc.com> at
 [CMG, Digital and Strategy](http://cmgdigital.com/) and is licensed under the
 terms of a MIT license.

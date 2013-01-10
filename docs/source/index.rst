@@ -7,6 +7,12 @@ Monocle is a Django application that handles rich content embedding using
 `OEmbed <http://oembed.com>`_, built specifically with scalability and performance in
 mind.
 
+:Authors: Shaun Duncan
+:Contact: shaun.duncan@coxinc.com
+:Version: 0.0.1
+:Copyright: 2012, Cox Media Group
+:License: MIT
+
 
 Requirements
 ------------
