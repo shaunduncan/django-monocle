@@ -295,3 +295,10 @@ class ProviderRegistryTestCase(TestCase):
 
     def test_match_has_no_match(self):
         self.assertIsNone(self.registry.match('FOO'))
+
+    def test_match_inactive(self):
+        self.registry.clear()
+        self.registry.ensure_populated()
+        TestInternalProvider.is_active = False
+        self.assertIsNone(self.registry.match('http://test.biz/foo'))
+        TestInternalProvider.is_active = True

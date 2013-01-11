@@ -46,6 +46,7 @@ class Provider(object):
     api_endpoint = None
     url_schemes = None
     resource_type = None
+    is_active = True  # Enable this provider to serve content
     expose = False  # Expose this provider externally
     _internal = False
 
@@ -495,7 +496,10 @@ class ProviderRegistry(object):
                 logger.exception('InternalProvider %s get_object failed' % matched)
                 matched = None
 
-        return matched
+        if getattr(matched, 'is_active', True):
+            return matched
+        else:
+            return None
 
     def register(self, provider):
         """
