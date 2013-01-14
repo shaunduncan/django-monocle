@@ -111,7 +111,9 @@ class HTMLConsumer(Consumer):
 
     def devour(self, content, maxwidth=None, maxheight=None):
         pre_consume.send(sender=self)
-        soup = BeautifulSoup(content or '')
+
+        # Soupify with less aggressive entity conversion
+        soup = BeautifulSoup(content or '', convertEntities=BeautifulSoup.HTML_ENTITIES)
 
         for element in soup.findAll(text=self.url_regex):
             # Don't handle linked URLs
@@ -119,7 +121,7 @@ class HTMLConsumer(Consumer):
                 logger.debug('Skipping hyperlinked content: %s' % element)
                 continue
             repl = self.enrich(str(element), maxwidth=maxwidth, maxheight=maxheight)
-            element.replaceWith(BeautifulSoup(repl))
+            element.replaceWith(BeautifulSoup(repl, convertEntities=BeautifulSoup.HTML_ENTITIES))
 
         post_consume.send(sender=self)
         return str(soup)
