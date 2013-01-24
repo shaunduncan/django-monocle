@@ -51,7 +51,7 @@ the features and asynchronous nature of Monocle.
 
 First, install the required python packages (best done within a virtualenv)::
 
-    $ pip install django celery beautifulsoup
+    $ pip install -r example/requirements.txt
 
 You will need to ensure your local machine has memcached and sqlite3 installed.
 
@@ -65,7 +65,7 @@ Once you have run ``syncdb``, you will need to start memcached, followed by the 
 celery worker, followed by the development server::
 
     $ memcached -p 11211 -d
-    $ ./manage.py celeryd -Q monocle
+    $ ./manage.py celeryd -Q monocle --no-execv
     $ ./manage.py runserver
 
 

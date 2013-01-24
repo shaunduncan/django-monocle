@@ -1,0 +1,5 @@
+django
+celery
+beautifulsoup
+django-celery
+python-memcached

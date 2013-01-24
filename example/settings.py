@@ -15,10 +15,9 @@ DATABASES = {
 }
 SITE_ID = 1
 MEDIA_ROOT = ''
-MEDIA_URL = '/media'
+MEDIA_URL = '/media/'
 STATIC_ROOT = '/static/'
 STATIC_URL = '/static/'
-ADMIN_MEDIA_PREFIX = '/static/admin/'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
