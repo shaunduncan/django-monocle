@@ -252,16 +252,18 @@ class InternalProvider(Provider):
 
     @property
     def maxwidth(self):
-        return self._params.get('maxwidth', getattr(self, 'DEFAULT_WIDTH', None))
+        return self._params.get('maxwidth', None) or getattr(self, 'DEFAULT_WIDTH', None)
 
     @property
     def maxheight(self):
-        return self._params.get('maxheight', getattr(self, 'DEFAULT_HEIGHT', None))
+        return self._params.get('maxheight', None) or getattr(self, 'DEFAULT_HEIGHT', None)
 
+    @property
     def width(self):
         # TODO: Is this the right way to handle this? Expensive?
         return self.nearest_allowed_size(self.maxwidth, self.maxheight)[0]
 
+    @property
     def height(self):
         # TODO: Is this the right way to handle this? Expensive?
         return self.nearest_allowed_size(self.maxwidth, self.maxheight)[1]
@@ -291,12 +293,13 @@ class InternalProvider(Provider):
         """
         attr = getattr(self, name, None)
 
+        if callable(attr):
+            attr = attr()
+
         if attr is None and required:
             raise NotImplementedError
-        elif callable(attr):
-            return attr()
-        else:
-            return attr
+
+        return attr
 
     def _check_dimension(self, width, height, maxwidth=None, maxheight=None, message=None):
         """
