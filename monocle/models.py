@@ -1,7 +1,9 @@
 import re
 
+from distutils.version import LooseVersion
 from urlparse import urlparse
 
+from django import get_version as django_version
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -20,11 +22,16 @@ class ThirdPartyProvider(models.Model, Provider):
     is maintained in a current state.
     """
     name = models.CharField(max_length=50, blank=True)
-    api_endpoint = models.URLField(verify_exists=False)
     resource_type = models.CharField(choices=RESOURCE_CHOICES, max_length=10)
     is_active = models.BooleanField(default=True, db_index=True)
     expose = models.BooleanField(default=False, db_index=True,
                                  help_text="Expose this resource to external requests")
+
+    # verify_exists deprecated in >= 1.4
+    if LooseVersion(django_version()) < LooseVersion('1.4'):
+        api_endpoint = models.URLField(verify_exists=False)
+    else:
+        api_endpoint = models.URLField()
 
     class Meta:
         ordering = ('api_endpoint', 'resource_type')
