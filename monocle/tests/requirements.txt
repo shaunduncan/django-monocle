@@ -1,0 +1,5 @@
+pytest
+celery
+BeautifulSoup
+unittest2
+mock
