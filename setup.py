@@ -20,4 +20,6 @@ setup(name='django-monocle',
       download_url='https://github.com/coxmediagroup/django-monocle/downloads',
       license='MIT',
       packages=find_packages(),
+      package_data={'monocle': ['templates/monocle/*.html', 'fixtures/*.json']},
+      include_package_data=True,
       )

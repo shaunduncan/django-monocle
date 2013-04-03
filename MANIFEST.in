@@ -1,3 +1,4 @@
 include README.md
 include LICENSE
 recursive-include monocle/templates *.html
+recursive-include monocle/fixtures *.json

@@ -1,0 +1,898 @@
+[
+    {
+        "pk": 8, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://api.instagram.com/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Instagram", 
+            "resource_type": "photo"
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://api.smugmug.com/services/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "SmugMug", 
+            "resource_type": "photo"
+        }
+    }, 
+    {
+        "pk": 24, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://api.twitter.com/1/statuses/oembed.json", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Twitter", 
+            "resource_type": "rich"
+        }
+    }, 
+    {
+        "pk": 21, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://backend.deviantart.com/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "DeviantART", 
+            "resource_type": "photo"
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://blip.tv/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "BlipTV", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://dotsub.com/services/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "dotSUB", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://my.opera.com/service/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "MyOpera", 
+            "resource_type": "rich"
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://photobucket.com/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Photobucket", 
+            "resource_type": "photo"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://qik.com/api/oembed.json", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Qik", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://revision3.com/api/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Revision3", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://skitch.com/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Skitch", 
+            "resource_type": "photo"
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://soundcloud.com/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "SoundCloud", 
+            "resource_type": "rich"
+        }
+    }, 
+    {
+        "pk": 25, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://speakerdeck.com/oembed.json", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Speaker Deck", 
+            "resource_type": "rich"
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://vimeo.com/api/oembed.json", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Vimeo", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.dailymotion.com/services/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "DailyMotion", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.flickr.com/services/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Flickr", 
+            "resource_type": "photo"
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.hulu.com/api/oembed.json", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Hulu", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.rdio.com/api/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Rdio", 
+            "resource_type": "rich"
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.scribd.com/services/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Scribd", 
+            "resource_type": "rich"
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.slideshare.net/api/oembed/2", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Slideshare", 
+            "resource_type": "rich"
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.ustream.tv/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "UStream", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.viddler.com/oembed/", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "Viddler", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.yfrog.com/api/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "yfrog", 
+            "resource_type": "photo"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "monocle.thirdpartyprovider", 
+        "fields": {
+            "api_endpoint": "http://www.youtube.com/oembed", 
+            "expose": false, 
+            "is_active": true, 
+            "name": "YouTube", 
+            "resource_type": "video"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*youtube.com/watch*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/v/*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://youtu.be/*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/user/*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/*#*/*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://m.youtube.com/watch*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://m.youtube.com/index*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/profile*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/view_play_list*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.youtube.com/playlist*", 
+            "provider": 1
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.flickr.com/photos/*", 
+            "provider": 2
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://flic.kr/*", 
+            "provider": 2
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*viddler.com/v/*", 
+            "provider": 3
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://qik.com/video/*", 
+            "provider": 4
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://qik.com/*", 
+            "provider": 4
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://qik.ly/*", 
+            "provider": 4
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*revision3.com/*", 
+            "provider": 5
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.hulu.com/watch*", 
+            "provider": 6
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.hulu.com/w/*", 
+            "provider": 6
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.hulu.com/embed/*", 
+            "provider": 6
+        }
+    }, 
+    {
+        "pk": 21, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.vimeo.com/groups/*/videos/*", 
+            "provider": 7
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.vimeo.com/*", 
+            "provider": 7
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://vimeo.com/m/#/*", 
+            "provider": 7
+        }
+    }, 
+    {
+        "pk": 24, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://instagr.am/p/*", 
+            "provider": 8
+        }
+    }, 
+    {
+        "pk": 25, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://instagram.com/p/*", 
+            "provider": 8
+        }
+    }, 
+    {
+        "pk": 26, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.slideshare.net/*/*", 
+            "provider": 9
+        }
+    }, 
+    {
+        "pk": 27, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.slideshare.net/mobile/*/*", 
+            "provider": 9
+        }
+    }, 
+    {
+        "pk": 28, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://slidesha.re/*", 
+            "provider": 9
+        }
+    }, 
+    {
+        "pk": 29, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://hulu.com/watch*", 
+            "provider": 6
+        }
+    }, 
+    {
+        "pk": 30, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://hulu.com/w/*", 
+            "provider": 6
+        }
+    }, 
+    {
+        "pk": 31, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://vimeo.com/groups/*/videos/*", 
+            "provider": 7
+        }
+    }, 
+    {
+        "pk": 32, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://vimeo.com/*", 
+            "provider": 7
+        }
+    }, 
+    {
+        "pk": 33, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*yfrog.*/*", 
+            "provider": 10
+        }
+    }, 
+    {
+        "pk": 37, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://my.opera.com/*/albums/show.dml?id=*", 
+            "provider": 12
+        }
+    }, 
+    {
+        "pk": 38, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://my.opera.com/*/albums/showpic.dml?album=*&picture=*", 
+            "provider": 12
+        }
+    }, 
+    {
+        "pk": 39, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://scribd.com/doc/*", 
+            "provider": 13
+        }
+    }, 
+    {
+        "pk": 40, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.scribd.com/doc/*", 
+            "provider": 13
+        }
+    }, 
+    {
+        "pk": 41, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://scribd.com/mobile/documents/*", 
+            "provider": 13
+        }
+    }, 
+    {
+        "pk": 42, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.scribd.com/mobile/documents/*", 
+            "provider": 13
+        }
+    }, 
+    {
+        "pk": 43, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://soundcloud.com/*", 
+            "provider": 14
+        }
+    }, 
+    {
+        "pk": 44, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://soundcloud.com/*/*", 
+            "provider": 14
+        }
+    }, 
+    {
+        "pk": 45, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://soundcloud.com/*/sets/*", 
+            "provider": 14
+        }
+    }, 
+    {
+        "pk": 46, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://soundcloud.com/groups/*", 
+            "provider": 14
+        }
+    }, 
+    {
+        "pk": 47, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://snd.sc/*", 
+            "provider": 14
+        }
+    }, 
+    {
+        "pk": 48, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://skitch.com/*/*/*", 
+            "provider": 15
+        }
+    }, 
+    {
+        "pk": 49, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://img.skitch.com/*", 
+            "provider": 15
+        }
+    }, 
+    {
+        "pk": 50, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.ustream.tv/recorded/*", 
+            "provider": 16
+        }
+    }, 
+    {
+        "pk": 51, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.ustream.tv/channel/*", 
+            "provider": 16
+        }
+    }, 
+    {
+        "pk": 52, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.ustream.tv/*", 
+            "provider": 16
+        }
+    }, 
+    {
+        "pk": 53, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.dailymotion.com/video/*", 
+            "provider": 17
+        }
+    }, 
+    {
+        "pk": 54, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.dailymotion.com/*/video/*", 
+            "provider": 17
+        }
+    }, 
+    {
+        "pk": 55, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://blip.tv/*/*", 
+            "provider": 18
+        }
+    }, 
+    {
+        "pk": 56, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.blip.tv/*/*", 
+            "provider": 18
+        }
+    }, 
+    {
+        "pk": 57, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://dotsub.com/view/*", 
+            "provider": 19
+        }
+    }, 
+    {
+        "pk": 58, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.rdio.com/#/artist/*/album/*", 
+            "provider": 20
+        }
+    }, 
+    {
+        "pk": 59, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.rdio.com/artist/*/album/*", 
+            "provider": 20
+        }
+    }, 
+    {
+        "pk": 60, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://rd.io/*", 
+            "provider": 20
+        }
+    }, 
+    {
+        "pk": 61, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.deviantart.com/art/*", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 62, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.deviantart.com/gallery/*", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 63, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.deviantart.com/#/*", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 64, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://fav.me/*", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 65, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.deviantart.com", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 66, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.deviantart.com/gallery", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 67, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.deviantart.com/*/*.jpg", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 68, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.deviantart.com/*/*.gif", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 69, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.deviantart.net/*/*.jpg", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 70, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.deviantart.net/*/*.gif", 
+            "provider": 21
+        }
+    }, 
+    {
+        "pk": 71, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://i*.photobucket.com/albums/*", 
+            "provider": 22
+        }
+    }, 
+    {
+        "pk": 72, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://s*.photobucket.com/albums/*", 
+            "provider": 22
+        }
+    }, 
+    {
+        "pk": 73, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://media.photobucket.com/image/*", 
+            "provider": 22
+        }
+    }, 
+    {
+        "pk": 74, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.smugmug.com/*", 
+            "provider": 23
+        }
+    }, 
+    {
+        "pk": 75, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://*.smugmug.com/*#*", 
+            "provider": 23
+        }
+    }, 
+    {
+        "pk": 76, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://twitter.com/*/status/*", 
+            "provider": 24
+        }
+    }, 
+    {
+        "pk": 77, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://twitter.com/*/statuses/*", 
+            "provider": 24
+        }
+    }, 
+    {
+        "pk": 78, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.twitter.com/*/status/*", 
+            "provider": 24
+        }
+    }, 
+    {
+        "pk": 79, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://www.twitter.com/*/statuses/*", 
+            "provider": 24
+        }
+    }, 
+    {
+        "pk": 80, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://mobile.twitter.com/*/status/*", 
+            "provider": 24
+        }
+    }, 
+    {
+        "pk": 81, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://mobile.twitter.com/*/statuses/*", 
+            "provider": 24
+        }
+    }, 
+    {
+        "pk": 82, 
+        "model": "monocle.urlscheme", 
+        "fields": {
+            "scheme": "http://speakerdeck.com/u/*/p/*", 
+            "provider": 25
+        }
+    }
+]
