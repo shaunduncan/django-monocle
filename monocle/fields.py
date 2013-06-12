@@ -92,3 +92,19 @@ class OEmbedURLField(fields.URLField):
     def pre_save(self, model, add):
         prefetch(getattr(model, self.attname), html=False, sizes=self.prefetch_sizes)
         return super(OEmbedURLField, self).pre_save(model, add)
+
+try:
+    from south.modelsinspector import add_introspection_rules
+except ImportError:
+    pass
+else:
+    _rule1 = ((OEmbedCharField, OEmbedTextField, OEmbedURLField), # Classes the rules apply to
+             [],                     # Positional arguments -- not used
+             {'prefetch_sizes': ["prefetch_sizes", {'default':settings.RESOURCE_DEFAULT_DIMENSIONS}]
+              })
+    _rule2 = ((OEmbedCharField, OEmbedTextField), # Classes the rules apply to
+             [],                     # Positional arguments -- not used
+             {'contains_html': ["contains_html", {}],
+              })
+
+    add_introspection_rules([_rule1, _rule2], ['^monocle\.fields\.OEmbed(Char|Text|URL)Field'])
