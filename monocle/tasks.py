@@ -26,6 +26,8 @@ class RequestExternalOEmbedTask(Task):
     def run(self, url):
         logger = self.get_logger()
         logger.info('Requesting OEmbed Resource %s' % url)
+        # The user agent needs to be spoofed here because some services,
+        # like Vimeo, block requests that look like they came from a bot
         req = urllib2.Request(url, headers={'User-agent': settings.USER_AGENT})
         try:
             request = urllib2.urlopen(req, timeout=settings.HTTP_TIMEOUT)

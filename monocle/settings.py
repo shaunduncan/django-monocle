@@ -55,7 +55,7 @@ class Settings(object):
         # Default cache age
         'CACHE_AGE': 60*60*24*30,
 
-        # Default user agent
+        # Default user-agent for requests to external providers
         'USER_AGENT': 'Mozilla/5.0',
     }
 
