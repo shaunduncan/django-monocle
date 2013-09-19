@@ -26,9 +26,9 @@ class RequestExternalOEmbedTask(Task):
     def run(self, url):
         logger = self.get_logger()
         logger.info('Requesting OEmbed Resource %s' % url)
-
+        req = urllib2.Request(url, headers={'User-agent': settings.USER_AGENT})
         try:
-            request = urllib2.urlopen(url, timeout=settings.HTTP_TIMEOUT)
+            request = urllib2.urlopen(req, timeout=settings.HTTP_TIMEOUT)
         except urllib2.HTTPError, e:
             logger.error('Failed to obtain %s : Status %s' % (url, e.code))
         except urllib2.URLError, e:

@@ -54,6 +54,9 @@ class Settings(object):
 
         # Default cache age
         'CACHE_AGE': 60*60*24*30,
+
+        # Default user agent
+        'USER_AGENT': 'Mozilla/5.0',
     }
 
     def __getattr__(self, attr):
