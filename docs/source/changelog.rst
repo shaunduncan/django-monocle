@@ -3,6 +3,11 @@
 Changelog
 =========
 
+0.0.5
+-----
+
+* Added support for JSONP callbacks
+
 0.0.4
 -----
 

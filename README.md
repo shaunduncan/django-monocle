@@ -45,6 +45,7 @@ Key Points and Features
   - TTL utilization: automatic cache refresh of stale content
 - Database stored, configurable external providers
 - Providers configurable to be exposed via URL endpoint
+- Support for JSONP callbacks by including a "callback" parameter in the request
 
 
 TODO
@@ -53,7 +54,6 @@ TODO
 - Management command to pre-populate third party providers from embed.ly
 - Expose format=xml from oembed endpoint
 - Pre-configured provider fixtures
-- Allow callback= in JSON oembed endpoint requests
 - Support multiple URL requests from oembed endpoint
 - Better exception handling/custom error reporting
 - Expose list of exposed oembed providers via URL
