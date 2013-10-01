@@ -60,6 +60,9 @@ def oembed(request):
     resource = provider.get_resource(url, **params)
 
     if resource.is_valid:
+        callback = request.GET.get('callback')
+        if callback:
+            return HttpResponse('%s(%s)' % (callback, resource.json), mimetype='application/json')
         return HttpResponse(resource.json, mimetype='application/json')
     else:
         return HttpResponseNotFound('OEmbed resource is invalid or unavailable')

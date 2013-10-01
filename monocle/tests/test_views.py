@@ -64,3 +64,16 @@ class ViewsTestCase(TestCase):
         self.request.GET = {'url': 'foo', 'maxwidth': '100', 'maxheight': 'foo'}
         oembed(self.request)
         provider.get_resource.assert_called_with('foo', maxwidth=100)
+
+    @patch('monocle.views.registry')
+    def test_oembed_handles_jsonp_callbacks(self, registry):
+        resource = Mock()
+        resource.json = '{"foo": "bar"}'
+        provider = Mock()
+        provider.expose = True
+        provider.get_resource.return_value = resource
+        registry.match.return_value = provider
+
+        self.request.GET = {'url': 'foo', 'callback': 'acallback'}
+        response = oembed(self.request)
+        self.assertEqual('acallback({"foo": "bar"})', response.content)
