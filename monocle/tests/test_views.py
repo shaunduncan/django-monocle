@@ -76,4 +76,4 @@ class ViewsTestCase(TestCase):
 
         self.request.GET = {'url': 'foo', 'callback': 'acallback'}
         response = oembed(self.request)
-        self.assertEqual('acallback({"foo": "bar"})', response.content)
+        self.assertEqual('acallback({"foo": "bar"});', response.content)
