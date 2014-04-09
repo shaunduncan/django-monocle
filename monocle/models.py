@@ -55,6 +55,14 @@ class ThirdPartyProvider(models.Model, Provider):
     def __unicode__(self):
         return self.name or self.api_endpoint
 
+    def invalidate_scheme_cache(self):
+        """
+        To reduce unnecessary database trips, url schemes are cached in memory.
+        This will invalidate that cache.
+        """
+        if hasattr(self, '_url_schemes'):
+            delattr(self, '_url_schemes')
+
 
 class URLScheme(models.Model):
     """
@@ -102,10 +110,7 @@ class URLScheme(models.Model):
 
 def _update_provider(sender, instance, created, **kwargs):
     """Post-save signal callback"""
-    # Invalidate the related object cache
-    if hasattr(instance, '_url_schemes'):
-        delattr(instance, '_url_schemes')
-
+    instance.invalidate_scheme_cache()
     registry.update(instance)
 
 
@@ -116,8 +121,7 @@ def _unregister_provider(sender, instance, **kwargs):
 
 def _invalidate_provider_schemes(sender, instance, created, **kwargs):
     # Invalidate the related object cache
-    if hasattr(instance.provider, '_url_schemes'):
-        delattr(instance.provider, '_url_schemes')
+    instance.provider.invalidate_scheme_cache()
 
 
 # Connect signals
