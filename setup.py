@@ -1,16 +1,17 @@
 from setuptools import setup, find_packages
-version = '0.0.5'
+version = '0.0.6'
 
 setup(name='django-monocle',
       version=version,
       description=("Django app for embedding rich content with scalability in mind"),
-      classifiers=['Development Status :: 1 - Beta',
+      classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Web Environment',
                    'Framework :: Django',
-                   'Intended Audience :: Django Developers',
+                   'Intended Audience :: Developers',
                    'License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
                    'Programming Language :: Python',
+                   'Programming Language :: Python :: 2.6',
                    'Topic :: Software Development :: Libraries :: Python Modules',
                    'Topic :: Utilities'],
       keywords='oembed rich content scalability',
