@@ -38,7 +38,9 @@ class ThirdPartyProvider(models.Model, Provider):
 
     @property
     def url_schemes(self):
-        return self._schemes.all()
+        if not hasattr(self, '_url_schemes'):
+            self._url_schemes = list(self._schemes.values_list('scheme', flat=True))
+        return self._url_schemes
 
     def clean(self):
         """
