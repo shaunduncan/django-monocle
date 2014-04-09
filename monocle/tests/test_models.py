@@ -3,7 +3,7 @@ from unittest import TestCase
 from monocle.models import ThirdPartyProvider, URLScheme
 
 
-class ThirdPartyProviderTestCase(TestCase):
+class ModelsTestCase(TestCase):
 
     def setUp(self):
         # Create a provider
@@ -32,9 +32,16 @@ class ThirdPartyProviderTestCase(TestCase):
         self.provider.url_schemes
         assert self.provider._url_schemes == [u'foo']
 
-    def test_post_save_signal_invalidates_cache(self):
+    def test_provider_post_save_signal_invalidates_cache(self):
         self.provider.url_schemes
         assert hasattr(self.provider, '_url_schemes')
 
         self.provider.save()
+        assert not hasattr(self.provider, '_url_schemes')
+
+    def test_scheme_post_save_signal_invalidates_cache(self):
+        self.provider.url_schemes
+        assert hasattr(self.provider, '_url_schemes')
+
+        self.scheme.save()
         assert not hasattr(self.provider, '_url_schemes')

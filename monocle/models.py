@@ -114,8 +114,16 @@ def _unregister_provider(sender, instance, **kwargs):
     registry.unregister(instance)
 
 
+def _invalidate_provider_schemes(sender, instance, created, **kwargs):
+    # Invalidate the related object cache
+    if hasattr(instance.provider, '_url_schemes'):
+        delattr(instance.provider, '_url_schemes')
+
+
 # Connect signals
 models.signals.post_save.connect(_update_provider, sender=ThirdPartyProvider)
+models.signals.post_save.connect(_invalidate_provider_schemes, sender=URLScheme)
+
 models.signals.post_delete.connect(_unregister_provider, sender=ThirdPartyProvider)
 
 
