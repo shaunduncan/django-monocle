@@ -10,7 +10,6 @@ from django.db import models
 from monocle.providers import Provider, registry
 from monocle.settings import settings
 
-
 RESOURCE_CHOICES = [(x, x.capitalize()) for x in settings.RESOURCE_TYPES]
 
 
@@ -103,6 +102,10 @@ class URLScheme(models.Model):
 
 def _update_provider(sender, instance, created, **kwargs):
     """Post-save signal callback"""
+    # Invalidate the related object cache
+    if hasattr(instance, '_url_schemes'):
+        delattr(instance, '_url_schemes')
+
     registry.update(instance)
 
 

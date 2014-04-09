@@ -27,7 +27,14 @@ class ThirdPartyProviderTestCase(TestCase):
         self.scheme.delete()
         self.provider.delete()
 
-    def test_url_schemes_property_cached(self, *args):
+    def test_url_schemes_property_cached(self):
         assert not hasattr(self.provider, '_url_schemes')
         self.provider.url_schemes
         assert self.provider._url_schemes == [u'foo']
+
+    def test_post_save_signal_invalidates_cache(self):
+        self.provider.url_schemes
+        assert hasattr(self.provider, '_url_schemes')
+
+        self.provider.save()
+        assert not hasattr(self.provider, '_url_schemes')
