@@ -66,6 +66,5 @@ TODO
 
 Contribution and License
 ------------------------
-Developed by Shaun Duncan <shaun.duncan@coxinc.com> at
-[CMG, Digital and Strategy](http://cmgdigital.com/) and is licensed under the
-terms of a MIT license.
+
+Contributions are welcomed. MIT Licensed.

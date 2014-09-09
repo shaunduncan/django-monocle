@@ -8,9 +8,8 @@ Monocle is a Django application that handles rich content embedding using
 mind.
 
 :Authors: Shaun Duncan
-:Contact: shaun.duncan@coxinc.com
-:Version: 0.0.1
-:Copyright: 2013, Cox Media Group
+:Contact: shaun.duncan@gmail.com
+:Version: 0.0.6
 :License: MIT
 
 
